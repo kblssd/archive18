@@ -1,0 +1,126 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
+}
+
+p {
+  font-size: large;
+}
+
+.topic {
+  font-family: "Lexend", sans-serif;
+  border-bottom: 2px solid black;
+  display: flex;
+  flex-direction: column;
+  padding: 40px;
+  box-sizing: border-box;
+}
+
+.topic:first-child {
+  border-top: 2px solid black;
+}
+
+summary {
+  font-family: "Lexend", sans-serif;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+summary h2 {
+  font-family: "Lexend", sans-serif;
+  font-size: 2rem;
+  margin-right: 20px;
+}
+
+.arrow::after {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-bottom: 2px solid #000;
+  border-right: 2px solid #000;
+  transform: rotate(45deg);
+  transition: transform 0.3s;
+}
+
+details[open] .arrow::after {
+  transform: rotate(-135deg);
+}
+
+.content {
+  padding-top: 20px;
+}
+
+.content h1 {
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.content h1:first-child {
+  margin-top: 0;
+}
+
+.content h2 {
+  margin-bottom: 0.2rem;
+}
+
+.content p {
+  margin-top: 0;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 600px) {
+  .topic {
+    padding: 20px;
+  }
+
+  summary h2 {
+    font-size: 1.4rem;
+  }
+}
+
+/* Editable answer fields */
+.answer-field {
+  border: 1px dashed #999;
+  border-radius: 4px;
+  padding: 6px 10px;
+  min-height: 1.4em;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  color: #222;
+}
+
+.answer-field:focus {
+  border-color: #000;
+  border-style: solid;
+  background: #f9f9f9;
+}
+
+.answer-field:empty::before {
+  content: attr(placeholder);
+  color: #aaa;
+  pointer-events: none;
+}
+
+/* Clear button */
+.clear-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  font-family: "Lexend", sans-serif;
+  font-size: 0.9rem;
+  padding: 10px 18px;
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 100;
+  transition: background 0.2s;
+}
+
+.clear-btn:hover {
+  background: #f0f0f0;
+}
