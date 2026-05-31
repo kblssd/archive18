@@ -347,7 +347,7 @@
           <tbody>
             <tr><td>20</td><td>FTP (Data)</td><td>TCP</td><td>Active mode data transfer</td></tr>
             <tr><td>21</td><td>FTP (Control)</td><td>TCP</td><td>Commands, authentication</td></tr>
-            <tr><td>22</td><td>SSH / SFTP / SCP</td><td>TCP</td><td>Encrypted remote access & file transfer</td></tr>
+            <tr><td>22</td><td>SSH / SFTP / SCP</td><td>TCP</td><td>Encrypted remote access &amp; file transfer</td></tr>
             <tr><td>23</td><td>Telnet</td><td>TCP</td><td>Unencrypted remote access — insecure</td></tr>
             <tr><td>25</td><td>SMTP</td><td>TCP</td><td>Sends email between servers</td></tr>
             <tr><td>49</td><td>TACACS+</td><td>TCP</td><td>Cisco AAA — separates auth/authz/acct</td></tr>
@@ -414,8 +414,6 @@
     </div>
   </details>
 </section>
-
-
 
 
 <button class="clear-btn" onclick="clearAnswers()">Clear All</button>
@@ -806,15 +804,15 @@
     document.getElementById('quizInput').disabled = false;
     if (quizQueue.length === 0) {
       document.getElementById('quizProtocol').textContent = '🎉 Done!';
-      document.getElementById('quizTransport').textContent = `Final: ${quizScore} / ${quizAttempted}`;
+      document.getElementById('quizTransport').textContent = 'Final: ' + quizScore + ' / ' + quizAttempted;
       document.getElementById('quizInput').style.display = 'none';
       document.getElementById('quizProgress').textContent = '';
       return;
     }
     quizCurrent = quizQueue.pop();
     document.getElementById('quizProtocol').textContent = quizCurrent.protocol;
-    document.getElementById('quizTransport').textContent = `Transport: ${quizCurrent.transport}`;
-    document.getElementById('quizProgress').textContent = `${PORT_DATA.length - quizQueue.length} / ${PORT_DATA.length}`;
+    document.getElementById('quizTransport').textContent = 'Transport: ' + quizCurrent.transport;
+    document.getElementById('quizProgress').textContent = (PORT_DATA.length - quizQueue.length) + ' / ' + PORT_DATA.length;
     document.getElementById('quizInput').style.display = '';
     document.getElementById('quizInput').focus();
   }
@@ -831,10 +829,10 @@
     if (input === correct) {
       quizScore++;
       document.getElementById('quizScore').textContent = quizScore;
-      fb.textContent = `✓ Correct! Port ${correct}`;
+      fb.textContent = '✓ Correct! Port ' + correct;
       fb.style.color = '#2a7a2a';
     } else {
-      fb.textContent = `✗ Answer: ${correct}`;
+      fb.textContent = '✗ Answer: ' + correct;
       fb.style.color = '#b00';
     }
     document.getElementById('quizNextBtn').style.display = 'inline-block';
