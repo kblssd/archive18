@@ -105,6 +105,108 @@ details[open] .arrow::after {
   pointer-events: none;
 }
 
+/* Port Numbers section */
+.ports-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.ports-btn {
+  font-family: "Lexend", sans-serif;
+  font-size: 0.9rem;
+  padding: 8px 16px;
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ports-btn:hover {
+  background: #f0f0f0;
+}
+
+.port-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.port-table th,
+.port-table td {
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.port-table th {
+  background: #f5f5f5;
+  font-weight: 600;
+}
+
+.port-table tr:nth-child(even) td {
+  background: #fafafa;
+}
+
+.port-table td:first-child {
+  font-weight: 600;
+  white-space: nowrap;
+  width: 70px;
+}
+
+/* Quiz */
+.quiz-stats {
+  margin-bottom: 16px;
+  font-size: 1rem;
+}
+
+.quiz-card {
+  border: 2px solid #000;
+  border-radius: 8px;
+  padding: 30px 24px;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.quiz-protocol {
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.quiz-transport {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.quiz-input {
+  font-family: "Lexend", sans-serif;
+  font-size: 1.1rem;
+  padding: 8px 12px;
+  border: 2px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+  width: 160px;
+}
+
+.quiz-input:focus {
+  border-color: #000;
+}
+
+.quiz-feedback {
+  font-size: 1rem;
+  font-weight: 600;
+  min-height: 1.2em;
+}
+
+.quiz-progress {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: #888;
+}
+
 /* Clear button */
 .clear-btn {
   position: fixed;
