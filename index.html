@@ -1,843 +1,445 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600&display=swap" rel="stylesheet">
-    <title>archive18</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>archive18 — Quiz</title>
+<style>
+  :root{
+    --ink:#111; --line:#000; --muted:#666; --bg:#fff;
+    --good:#1f7a3d; --good-bg:#e8f6ec; --bad:#b00020; --bad-bg:#fdeaec;
+    --soft:#f4f4f4; --chip:#f0f0f0;
+  }
+  *{box-sizing:border-box}
+  body,html{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:"Lexend",sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  .wrap{max-width:780px;margin:0 auto;padding:24px 20px 80px}
+
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+    border-bottom:2px solid var(--line);padding-bottom:14px;margin-bottom:18px;flex-wrap:wrap}
+  .brand{font-size:1.9rem;font-weight:700;letter-spacing:-.5px}
+  .brand span{font-weight:300;color:var(--muted)}
+  .study-link{font-size:.95rem;text-decoration:none;border:2px solid var(--line);
+    border-radius:6px;padding:7px 13px;font-weight:500;white-space:nowrap;transition:background .15s}
+  .study-link:hover{background:var(--soft)}
+
+  .toolbar{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}
+  .modes{display:inline-flex;border:2px solid var(--line);border-radius:8px;overflow:hidden}
+  .modes button{font-family:inherit;font-size:.92rem;font-weight:500;border:0;background:#fff;
+    padding:9px 15px;cursor:pointer;transition:background .15s;border-right:2px solid var(--line)}
+  .modes button:last-child{border-right:0}
+  .modes button.active{background:var(--ink);color:#fff}
+  select{font-family:inherit;font-size:.92rem;padding:9px 12px;border:2px solid var(--line);
+    border-radius:8px;background:#fff;cursor:pointer;font-weight:500}
+
+  .stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+  .stat{flex:1;min-width:90px;border:2px solid var(--line);border-radius:8px;padding:10px 12px;text-align:center}
+  .stat .lbl{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .stat .val{font-size:1.5rem;font-weight:700;line-height:1.1}
+  .stat .fire{font-size:1.1rem}
+
+  .card{border:2px solid var(--line);border-radius:14px;padding:30px 26px;min-height:230px;
+    display:flex;flex-direction:column;gap:16px;position:relative}
+  .chip{align-self:flex-start;font-size:.72rem;font-weight:600;letter-spacing:.04em;
+    background:var(--chip);border-radius:20px;padding:4px 12px;color:#333}
+  .q-label{font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .q-text{font-size:1.5rem;font-weight:600;line-height:1.35}
+  .q-text.def{font-size:1.22rem;font-weight:500;line-height:1.5}
+
+  /* flashcard */
+  .flash-front{font-size:2rem;font-weight:700;line-height:1.25}
+  .flash-hint{font-size:.85rem;color:var(--muted)}
+  .flash-back{font-size:1.18rem;line-height:1.55;font-weight:400;border-top:1px dashed #ccc;padding-top:14px}
+  .flash-buttons{display:flex;gap:10px;margin-top:6px}
+
+  /* MC */
+  .opts{display:flex;flex-direction:column;gap:10px}
+  .opt{font-family:inherit;font-size:1.02rem;text-align:left;border:2px solid var(--line);
+    background:#fff;border-radius:9px;padding:12px 15px;cursor:pointer;transition:background .12s;
+    display:flex;gap:10px;align-items:center;font-weight:500}
+  .opt:hover:not(:disabled){background:var(--soft)}
+  .opt .key{font-size:.78rem;font-weight:700;border:1.5px solid #bbb;border-radius:5px;
+    width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+  .opt.correct{background:var(--good-bg);border-color:var(--good)}
+  .opt.wrong{background:var(--bad-bg);border-color:var(--bad)}
+  .opt:disabled{cursor:default}
+
+  /* type */
+  .type-row{display:flex;gap:10px;flex-wrap:wrap}
+  .type-input{font-family:inherit;font-size:1.1rem;padding:11px 14px;border:2px solid #bbb;
+    border-radius:9px;outline:none;flex:1;min-width:200px}
+  .type-input:focus{border-color:var(--ink)}
+  .type-input.correct{border-color:var(--good);background:var(--good-bg)}
+  .type-input.wrong{border-color:var(--bad);background:var(--bad-bg)}
+
+  .feedback{font-size:1.02rem;font-weight:600;min-height:1.3em;line-height:1.4}
+  .feedback.good{color:var(--good)}
+  .feedback.bad{color:var(--bad)}
+  .reveal{font-size:1.02rem;line-height:1.5;background:var(--soft);border-radius:9px;
+    padding:12px 14px;font-weight:400}
+  .reveal b{font-weight:700}
+
+  .btn{font-family:inherit;font-size:.95rem;font-weight:600;border:2px solid var(--line);
+    background:#fff;border-radius:8px;padding:10px 18px;cursor:pointer;transition:background .15s}
+  .btn:hover:not(:disabled){background:var(--soft)}
+  .btn.primary{background:var(--ink);color:#fff}
+  .btn.primary:hover:not(:disabled){background:#333}
+  .btn.good{background:var(--good);color:#fff;border-color:var(--good)}
+  .btn.bad{background:#fff;color:var(--bad);border-color:var(--bad)}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .btn.ghost{border-color:#ccc;color:#555;font-weight:500}
+  .btn.ghost:hover{background:var(--soft)}
+  .btn.danger{color:var(--bad);border-color:#e3b5bc}
+
+  .card-actions{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+  .shortcuts{font-size:.78rem;color:var(--muted);margin-left:auto}
+  kbd{font-family:inherit;font-size:.72rem;background:var(--chip);border:1px solid #ccc;
+    border-bottom-width:2px;border-radius:4px;padding:1px 6px}
+
+  .progress-panel{margin-top:26px;border:2px solid var(--line);border-radius:12px;padding:6px 18px 18px}
+  .progress-panel summary{font-weight:600;font-size:1.05rem;cursor:pointer;padding:12px 0;list-style:none}
+  .progress-panel summary::-webkit-details-marker{display:none}
+  .progress-panel summary::before{content:'▸';margin-right:8px;display:inline-block;transition:transform .2s}
+  .progress-panel[open] summary::before{transform:rotate(90deg)}
+  .bar-row{margin:12px 0}
+  .bar-top{display:flex;justify-content:space-between;font-size:.9rem;margin-bottom:5px}
+  .bar-top .nm{font-weight:500}
+  .bar-top .wt{color:var(--muted);font-weight:400}
+  .bar-track{height:14px;background:var(--soft);border-radius:8px;overflow:hidden;border:1px solid #e2e2e2}
+  .bar-fill{height:100%;background:var(--ink);width:0;transition:width .4s ease}
+  .bar-fill.done{background:var(--good)}
+  .bar-num{font-size:.78rem;color:var(--muted);margin-top:3px}
+
+  .done-screen{text-align:center;padding:20px 0}
+  .done-screen .big{font-size:2rem;font-weight:700;margin-bottom:8px}
+  .done-screen .sub{color:var(--muted);font-size:1.05rem;margin-bottom:18px}
+
+  @media(max-width:560px){
+    .brand{font-size:1.5rem}
+    .q-text{font-size:1.25rem}.flash-front{font-size:1.6rem}
+    .stat .val{font-size:1.25rem}.shortcuts{display:none}
+    .modes button{padding:9px 11px;font-size:.85rem}
+  }
+</style>
 </head>
-
 <body>
+<div class="wrap">
 
-<section class="topic">
-  <details>
-    <summary>
-      <h2>Network+ V9</h2>
-      <span class="arrow"></span>
-    </summary>
-    <div class="content">
+  <header>
+    <div class="brand">archive18 <span>quiz</span></div>
+    <a class="study-link" href="index.html">&larr; Study sheet</a>
+  </header>
 
-      <h1>Networking Concepts (23%):</h1>
-
-        <h2><b>OSI Model:</b></h2>
-          <h2><b>Layer 1: Physical layer</b></h2> <p contenteditable="true" class="answer-field" data-key="osi-l1" placeholder="Type your answer..."></p>
-          <h2><b>Layer 2: Data Link</b></h2> <p contenteditable="true" class="answer-field" data-key="osi-l2" placeholder="Type your answer..."></p>
-          <h2><b>Layer 3: Network</b></h2> <p contenteditable="true" class="answer-field" data-key="osi-l3" placeholder="Type your answer..."></p>
-          <h2><b>Layer 4: Transport</b></h2> <p contenteditable="true" class="answer-field" data-key="osi-l4" placeholder="Type your answer..."></p>
-          <h2><b>Layer 5: Session</b></h2> <p contenteditable="true" class="answer-field" data-key="osi-l5" placeholder="Type your answer..."></p>
-          <h2><b>Layer 6: Presentation</b></h2> <p contenteditable="true" class="answer-field" data-key="osi-l6" placeholder="Type your answer..."></p>
-          <h2><b>Layer 7: Application</b></h2> <p contenteditable="true" class="answer-field" data-key="osi-l7" placeholder="Type your answer..."></p>
-
-        <h2><b>Networking appliances:</b></h2>
-          <h2><b>Routers:</b></h2> <p contenteditable="true" class="answer-field" data-key="app-routers" placeholder="Type your answer..."></p>
-          <h2><b>Switches:</b></h2> <p contenteditable="true" class="answer-field" data-key="app-switches" placeholder="Type your answer..."></p>
-          <h2><b>Hubs:</b></h2> <p contenteditable="true" class="answer-field" data-key="app-hubs" placeholder="Type your answer..."></p>
-          <h2><b>Firewall:</b></h2> <p contenteditable="true" class="answer-field" data-key="app-firewall" placeholder="Type your answer..."></p>
-          <h2><b>IDS/IPS:</b></h2> <p contenteditable="true" class="answer-field" data-key="app-idsips" placeholder="Type your answer..."></p>
-          <h2><b>Load Balancer:</b></h2> <p contenteditable="true" class="answer-field" data-key="app-lb" placeholder="Type your answer..."></p>
-          <h2><b>Proxies:</b></h2> <p contenteditable="true" class="answer-field" data-key="app-proxies" placeholder="Type your answer..."></p>
-          <h2><b>NAS:</b></h2> <p contenteditable="true" class="answer-field" data-key="app-nas" placeholder="Type your answer..."></p>
-          <h2><b>SAN:</b></h2> <p contenteditable="true" class="answer-field" data-key="app-san" placeholder="Type your answer..."></p>
-
-        <h2><b>Cloud concepts:</b></h2>
-          <h2><b>NFV:</b></h2> <p contenteditable="true" class="answer-field" data-key="cloud-nfv" placeholder="Type your answer..."></p>
-          <h2><b>VPC:</b></h2> <p contenteditable="true" class="answer-field" data-key="cloud-vpc" placeholder="Type your answer..."></p>
-          <h2><b>NSG:</b></h2> <p contenteditable="true" class="answer-field" data-key="cloud-nsg" placeholder="Type your answer..."></p>
-          <h2><b>Cloud Gateways:</b></h2> <p contenteditable="true" class="answer-field" data-key="cloud-gw" placeholder="Type your answer..."></p>
-          <h2><b>Deployment models (public, private, hybrid):</b></h2> <p contenteditable="true" class="answer-field" data-key="cloud-deploy" placeholder="Type your answer..."></p>
-
-        <h2><b>Ports and protocols:</b></h2>
-          <h2><b>FTP:</b></h2> <p contenteditable="true" class="answer-field" data-key="proto-ftp" placeholder="Type your answer..."></p>
-          <h2><b>SFTP:</b></h2> <p contenteditable="true" class="answer-field" data-key="proto-sftp" placeholder="Type your answer..."></p>
-
-        <h2><b>Traffic types:</b></h2>
-          <h2><b>Unicast:</b></h2> <p contenteditable="true" class="answer-field" data-key="traffic-unicast" placeholder="Type your answer..."></p>
-          <h2><b>Multicast:</b></h2> <p contenteditable="true" class="answer-field" data-key="traffic-multicast" placeholder="Type your answer..."></p>
-          <h2><b>Anycast:</b></h2> <p contenteditable="true" class="answer-field" data-key="traffic-anycast" placeholder="Type your answer..."></p>
-          <h2><b>Broadcast:</b></h2> <p contenteditable="true" class="answer-field" data-key="traffic-broadcast" placeholder="Type your answer..."></p>
-
-        <h2><b>Transmission media (Wireless):</b></h2>
-          <h2><b>802.11:</b></h2> <p contenteditable="true" class="answer-field" data-key="wireless-80211" placeholder="Type your answer..."></p>
-          <h2><b>Cellular:</b></h2> <p contenteditable="true" class="answer-field" data-key="wireless-cellular" placeholder="Type your answer..."></p>
-          <h2><b>Satellite:</b></h2> <p contenteditable="true" class="answer-field" data-key="wireless-satellite" placeholder="Type your answer..."></p>
-
-        <h2><b>Transmission media (Wired):</b></h2>
-          <h2><b>Fiber:</b></h2> <p contenteditable="true" class="answer-field" data-key="wired-fiber" placeholder="Type your answer..."></p>
-          <h2><b>Coaxial:</b></h2> <p contenteditable="true" class="answer-field" data-key="wired-coax" placeholder="Type your answer..."></p>
-          <h2><b>DAC (Direct Attach Copper):</b></h2> <p contenteditable="true" class="answer-field" data-key="wired-dac" placeholder="Type your answer..."></p>
-
-        <h2><b>Transceivers and connectors:</b></h2>
-          <h2><b>SC:</b></h2> <p contenteditable="true" class="answer-field" data-key="conn-sc" placeholder="Type your answer..."></p>
-          <h2><b>LC:</b></h2> <p contenteditable="true" class="answer-field" data-key="conn-lc" placeholder="Type your answer..."></p>
-          <h2><b>ST:</b></h2> <p contenteditable="true" class="answer-field" data-key="conn-st" placeholder="Type your answer..."></p>
-          <h2><b>MPO:</b></h2> <p contenteditable="true" class="answer-field" data-key="conn-mpo" placeholder="Type your answer..."></p>
-          <h2><b>RJ11:</b></h2> <p contenteditable="true" class="answer-field" data-key="conn-rj11" placeholder="Type your answer..."></p>
-          <h2><b>RJ45:</b></h2> <p contenteditable="true" class="answer-field" data-key="conn-rj45" placeholder="Type your answer..."></p>
-          <h2><b>F-type:</b></h2> <p contenteditable="true" class="answer-field" data-key="conn-ftype" placeholder="Type your answer..."></p>
-          <h2><b>BNC:</b></h2> <p contenteditable="true" class="answer-field" data-key="conn-bnc" placeholder="Type your answer..."></p>
-
-        <h2><b>Network topologies:</b></h2>
-          <h2><b>Mesh:</b></h2> <p contenteditable="true" class="answer-field" data-key="topo-mesh" placeholder="Type your answer..."></p>
-          <h2><b>Hybrid:</b></h2> <p contenteditable="true" class="answer-field" data-key="topo-hybrid" placeholder="Type your answer..."></p>
-          <h2><b>Star/Hub and spoke:</b></h2> <p contenteditable="true" class="answer-field" data-key="topo-star" placeholder="Type your answer..."></p>
-          <h2><b>Spine and leaf:</b></h2> <p contenteditable="true" class="answer-field" data-key="topo-spineleaf" placeholder="Type your answer..."></p>
-          <h2><b>Point-to-point:</b></h2> <p contenteditable="true" class="answer-field" data-key="topo-p2p" placeholder="Type your answer..."></p>
-          <h2><b>Three-tier:</b></h2> <p contenteditable="true" class="answer-field" data-key="topo-threetier" placeholder="Type your answer..."></p>
-          <h2><b>Collapsed core:</b></h2> <p contenteditable="true" class="answer-field" data-key="topo-collapsedcore" placeholder="Type your answer..."></p>
-
-        <h2><b>IPv4 addressing:</b></h2>
-          <h2><b>Public vs. private:</b></h2> <p contenteditable="true" class="answer-field" data-key="ipv4-pubpriv" placeholder="Type your answer..."></p>
-          <h2><b>APIPA:</b></h2> <p contenteditable="true" class="answer-field" data-key="ipv4-apipa" placeholder="Type your answer..."></p>
-          <h2><b>RFC1918:</b></h2> <p contenteditable="true" class="answer-field" data-key="ipv4-rfc1918" placeholder="Type your answer..."></p>
-          <h2><b>Loopback:</b></h2> <p contenteditable="true" class="answer-field" data-key="ipv4-loopback" placeholder="Type your answer..."></p>
-          <h2><b>Subnetting (VLSM, CIDR):</b></h2> <p contenteditable="true" class="answer-field" data-key="ipv4-subnet" placeholder="Type your answer..."></p>
-          <h2><b>Address classes (A, B, C, D, E):</b></h2> <p contenteditable="true" class="answer-field" data-key="ipv4-classes" placeholder="Type your answer..."></p>
-
-        <h2><b>Additional ports and protocols:</b></h2>
-          <h2><b>SSH:</b></h2> <p contenteditable="true" class="answer-field" data-key="proto-ssh" placeholder="Type your answer..."></p>
-          <h2><b>Telnet:</b></h2> <p contenteditable="true" class="answer-field" data-key="proto-telnet" placeholder="Type your answer..."></p>
-          <h2><b>SMTP:</b></h2> <p contenteditable="true" class="answer-field" data-key="proto-smtp" placeholder="Type your answer..."></p>
-          <h2><b>DNS:</b></h2> <p contenteditable="true" class="answer-field" data-key="proto-dns" placeholder="Type your answer..."></p>
-          <h2><b>DHCP:</b></h2> <p contenteditable="true" class="answer-field" data-key="proto-dhcp" placeholder="Type your answer..."></p>
-          <h2><b>HTTP:</b></h2> <p contenteditable="true" class="answer-field" data-key="proto-http" placeholder="Type your answer..."></p>
-          <h2><b>HTTPS:</b></h2> <p contenteditable="true" class="answer-field" data-key="proto-https" placeholder="Type your answer..."></p>
-          <h2><b>SNMP:</b></h2> <p contenteditable="true" class="answer-field" data-key="proto-snmp" placeholder="Type your answer..."></p>
-          <h2><b>LDAP:</b></h2> <p contenteditable="true" class="answer-field" data-key="proto-ldap" placeholder="Type your answer..."></p>
-          <h2><b>RDP:</b></h2> <p contenteditable="true" class="answer-field" data-key="proto-rdp" placeholder="Type your answer..."></p>
-          <h2><b>SIP:</b></h2> <p contenteditable="true" class="answer-field" data-key="proto-sip" placeholder="Type your answer..."></p>
-
-        <h2><b>Additional cloud service models:</b></h2>
-          <h2><b>SaaS:</b></h2> <p contenteditable="true" class="answer-field" data-key="cloud-saas" placeholder="Type your answer..."></p>
-          <h2><b>IaaS:</b></h2> <p contenteditable="true" class="answer-field" data-key="cloud-iaas" placeholder="Type your answer..."></p>
-          <h2><b>PaaS:</b></h2> <p contenteditable="true" class="answer-field" data-key="cloud-paas" placeholder="Type your answer..."></p>
-
-
-      <h1>Network Implementation (20%):</h1>
-
-        <h2><b>Routing technologies:</b></h2>
-          <h2><b>Static routing:</b></h2> <p contenteditable="true" class="answer-field" data-key="route-static" placeholder="Type your answer..."></p>
-          <h2><b>Dynamic routing:</b></h2> <p contenteditable="true" class="answer-field" data-key="route-dynamic" placeholder="Type your answer..."></p>
-          <h2><b>BGP:</b></h2> <p contenteditable="true" class="answer-field" data-key="route-bgp" placeholder="Type your answer..."></p>
-          <h2><b>EIGRP:</b></h2> <p contenteditable="true" class="answer-field" data-key="route-eigrp" placeholder="Type your answer..."></p>
-          <h2><b>OSPF:</b></h2> <p contenteditable="true" class="answer-field" data-key="route-ospf" placeholder="Type your answer..."></p>
-          <h2><b>NAT:</b></h2> <p contenteditable="true" class="answer-field" data-key="route-nat" placeholder="Type your answer..."></p>
-          <h2><b>PAT:</b></h2> <p contenteditable="true" class="answer-field" data-key="route-pat" placeholder="Type your answer..."></p>
-          <h2><b>FHRP:</b></h2> <p contenteditable="true" class="answer-field" data-key="route-fhrp" placeholder="Type your answer..."></p>
-          <h2><b>VIP:</b></h2> <p contenteditable="true" class="answer-field" data-key="route-vip" placeholder="Type your answer..."></p>
-          <h2><b>Subinterfaces:</b></h2> <p contenteditable="true" class="answer-field" data-key="route-subint" placeholder="Type your answer..."></p>
-
-        <h2><b>Switching technologies:</b></h2>
-          <h2><b>VLANs:</b></h2> <p contenteditable="true" class="answer-field" data-key="switch-vlan" placeholder="Type your answer..."></p>
-          <h2><b>Interface configuration:</b></h2> <p contenteditable="true" class="answer-field" data-key="switch-ifconfig" placeholder="Type your answer..."></p>
-          <h2><b>Spanning tree:</b></h2> <p contenteditable="true" class="answer-field" data-key="switch-stp" placeholder="Type your answer..."></p>
-          <h2><b>MTU:</b></h2> <p contenteditable="true" class="answer-field" data-key="switch-mtu" placeholder="Type your answer..."></p>
-          <h2><b>Jumbo frames:</b></h2> <p contenteditable="true" class="answer-field" data-key="switch-jumbo" placeholder="Type your answer..."></p>
-
-        <h2><b>Wireless:</b></h2>
-          <h2><b>Channels:</b></h2> <p contenteditable="true" class="answer-field" data-key="wifi-channels" placeholder="Type your answer..."></p>
-          <h2><b>Frequency options:</b></h2> <p contenteditable="true" class="answer-field" data-key="wifi-freq" placeholder="Type your answer..."></p>
-          <h2><b>SSID:</b></h2> <p contenteditable="true" class="answer-field" data-key="wifi-ssid" placeholder="Type your answer..."></p>
-          <h2><b>Encryption:</b></h2> <p contenteditable="true" class="answer-field" data-key="wifi-enc" placeholder="Type your answer..."></p>
-          <h2><b>Guest networks:</b></h2> <p contenteditable="true" class="answer-field" data-key="wifi-guest" placeholder="Type your answer..."></p>
-          <h2><b>Authentication:</b></h2> <p contenteditable="true" class="answer-field" data-key="wifi-auth" placeholder="Type your answer..."></p>
-          <h2><b>Antennas:</b></h2> <p contenteditable="true" class="answer-field" data-key="wifi-antenna" placeholder="Type your answer..."></p>
-          <h2><b>Access points:</b></h2> <p contenteditable="true" class="answer-field" data-key="wifi-ap" placeholder="Type your answer..."></p>
-
-        <h2><b>Physical installations:</b></h2>
-          <h2><b>Installation implications:</b></h2> <p contenteditable="true" class="answer-field" data-key="phys-install" placeholder="Type your answer..."></p>
-          <h2><b>Power considerations:</b></h2> <p contenteditable="true" class="answer-field" data-key="phys-power" placeholder="Type your answer..."></p>
-          <h2><b>Environmental factors:</b></h2> <p contenteditable="true" class="answer-field" data-key="phys-env" placeholder="Type your answer..."></p>
-
-
-      <h1>Network Operations (19%):</h1>
-
-        <h2><b>Documentation:</b></h2>
-          <h2><b>Physical vs. logical diagrams:</b></h2> <p contenteditable="true" class="answer-field" data-key="doc-diagrams" placeholder="Type your answer..."></p>
-          <h2><b>Rack diagrams:</b></h2> <p contenteditable="true" class="answer-field" data-key="doc-rack" placeholder="Type your answer..."></p>
-          <h2><b>Cable maps:</b></h2> <p contenteditable="true" class="answer-field" data-key="doc-cable" placeholder="Type your answer..."></p>
-          <h2><b>Asset inventory:</b></h2> <p contenteditable="true" class="answer-field" data-key="doc-asset" placeholder="Type your answer..."></p>
-          <h2><b>IPAM:</b></h2> <p contenteditable="true" class="answer-field" data-key="doc-ipam" placeholder="Type your answer..."></p>
-          <h2><b>SLA:</b></h2> <p contenteditable="true" class="answer-field" data-key="doc-sla" placeholder="Type your answer..."></p>
-          <h2><b>Wireless surveys:</b></h2> <p contenteditable="true" class="answer-field" data-key="doc-wsurvey" placeholder="Type your answer..."></p>
-
-        <h2><b>Life-cycle management:</b></h2>
-          <h2><b>EOL (End of Life):</b></h2> <p contenteditable="true" class="answer-field" data-key="lc-eol" placeholder="Type your answer..."></p>
-          <h2><b>EOS (End of Support):</b></h2> <p contenteditable="true" class="answer-field" data-key="lc-eos" placeholder="Type your answer..."></p>
-          <h2><b>Software management:</b></h2> <p contenteditable="true" class="answer-field" data-key="lc-softmgmt" placeholder="Type your answer..."></p>
-          <h2><b>Decommissioning:</b></h2> <p contenteditable="true" class="answer-field" data-key="lc-decom" placeholder="Type your answer..."></p>
-
-        <h2><b>Change management:</b></h2>
-          <h2><b>Request process tracking:</b></h2> <p contenteditable="true" class="answer-field" data-key="change-track" placeholder="Type your answer..."></p>
-
-        <h2><b>Configuration management:</b></h2>
-          <h2><b>Production configuration:</b></h2> <p contenteditable="true" class="answer-field" data-key="cfg-prod" placeholder="Type your answer..."></p>
-          <h2><b>Backup configuration:</b></h2> <p contenteditable="true" class="answer-field" data-key="cfg-backup" placeholder="Type your answer..."></p>
-          <h2><b>Baseline configuration:</b></h2> <p contenteditable="true" class="answer-field" data-key="cfg-baseline" placeholder="Type your answer..."></p>
-
-        <h2><b>Network monitoring:</b></h2>
-          <h2><b>SNMP:</b></h2> <p contenteditable="true" class="answer-field" data-key="mon-snmp" placeholder="Type your answer..."></p>
-          <h2><b>Flow data:</b></h2> <p contenteditable="true" class="answer-field" data-key="mon-flow" placeholder="Type your answer..."></p>
-          <h2><b>Packet capture:</b></h2> <p contenteditable="true" class="answer-field" data-key="mon-pcap" placeholder="Type your answer..."></p>
-          <h2><b>Baseline metrics:</b></h2> <p contenteditable="true" class="answer-field" data-key="mon-baseline" placeholder="Type your answer..."></p>
-          <h2><b>Log aggregation:</b></h2> <p contenteditable="true" class="answer-field" data-key="mon-log" placeholder="Type your answer..."></p>
-          <h2><b>API integration:</b></h2> <p contenteditable="true" class="answer-field" data-key="mon-api" placeholder="Type your answer..."></p>
-          <h2><b>Port mirroring:</b></h2> <p contenteditable="true" class="answer-field" data-key="mon-mirror" placeholder="Type your answer..."></p>
-
-        <h2><b>Disaster recovery:</b></h2>
-          <h2><b>RPO (Recovery Point Objective):</b></h2> <p contenteditable="true" class="answer-field" data-key="dr-rpo" placeholder="Type your answer..."></p>
-          <h2><b>RTO (Recovery Time Objective):</b></h2> <p contenteditable="true" class="answer-field" data-key="dr-rto" placeholder="Type your answer..."></p>
-          <h2><b>MTTR (Mean Time To Repair):</b></h2> <p contenteditable="true" class="answer-field" data-key="dr-mttr" placeholder="Type your answer..."></p>
-          <h2><b>MTBF (Mean Time Between Failures):</b></h2> <p contenteditable="true" class="answer-field" data-key="dr-mtbf" placeholder="Type your answer..."></p>
-          <h2><b>Cold/warm/hot sites:</b></h2> <p contenteditable="true" class="answer-field" data-key="dr-sites" placeholder="Type your answer..."></p>
-          <h2><b>Active-active/passive:</b></h2> <p contenteditable="true" class="answer-field" data-key="dr-active" placeholder="Type your answer..."></p>
-
-        <h2><b>Network services:</b></h2>
-          <h2><b>DHCP:</b></h2> <p contenteditable="true" class="answer-field" data-key="svc-dhcp" placeholder="Type your answer..."></p>
-          <h2><b>SLAAC:</b></h2> <p contenteditable="true" class="answer-field" data-key="svc-slaac" placeholder="Type your answer..."></p>
-          <h2><b>DNS:</b></h2> <p contenteditable="true" class="answer-field" data-key="svc-dns" placeholder="Type your answer..."></p>
-          <h2><b>NTP:</b></h2> <p contenteditable="true" class="answer-field" data-key="svc-ntp" placeholder="Type your answer..."></p>
-          <h2><b>PTP:</b></h2> <p contenteditable="true" class="answer-field" data-key="svc-ptp" placeholder="Type your answer..."></p>
-          <h2><b>NTS:</b></h2> <p contenteditable="true" class="answer-field" data-key="svc-nts" placeholder="Type your answer..."></p>
-
-        <h2><b>Access and management:</b></h2>
-          <h2><b>VPNs:</b></h2> <p contenteditable="true" class="answer-field" data-key="mgmt-vpn" placeholder="Type your answer..."></p>
-          <h2><b>SSH:</b></h2> <p contenteditable="true" class="answer-field" data-key="mgmt-ssh" placeholder="Type your answer..."></p>
-          <h2><b>GUI:</b></h2> <p contenteditable="true" class="answer-field" data-key="mgmt-gui" placeholder="Type your answer..."></p>
-          <h2><b>API:</b></h2> <p contenteditable="true" class="answer-field" data-key="mgmt-api" placeholder="Type your answer..."></p>
-          <h2><b>Console:</b></h2> <p contenteditable="true" class="answer-field" data-key="mgmt-console" placeholder="Type your answer..."></p>
-
-
-      <h1>Network Security (14%):</h1>
-
-        <h2><b>Logical security:</b></h2>
-          <h2><b>Encryption (data in transit/rest):</b></h2> <p contenteditable="true" class="answer-field" data-key="sec-enc" placeholder="Type your answer..."></p>
-          <h2><b>PKI:</b></h2> <p contenteditable="true" class="answer-field" data-key="sec-pki" placeholder="Type your answer..."></p>
-          <h2><b>IAM:</b></h2> <p contenteditable="true" class="answer-field" data-key="sec-iam" placeholder="Type your answer..."></p>
-          <h2><b>MFA:</b></h2> <p contenteditable="true" class="answer-field" data-key="sec-mfa" placeholder="Type your answer..."></p>
-          <h2><b>SSO:</b></h2> <p contenteditable="true" class="answer-field" data-key="sec-sso" placeholder="Type your answer..."></p>
-          <h2><b>RADIUS:</b></h2> <p contenteditable="true" class="answer-field" data-key="sec-radius" placeholder="Type your answer..."></p>
-          <h2><b>LDAP:</b></h2> <p contenteditable="true" class="answer-field" data-key="sec-ldap" placeholder="Type your answer..."></p>
-          <h2><b>SAML:</b></h2> <p contenteditable="true" class="answer-field" data-key="sec-saml" placeholder="Type your answer..."></p>
-          <h2><b>TACACS+:</b></h2> <p contenteditable="true" class="answer-field" data-key="sec-tacacs" placeholder="Type your answer..."></p>
-          <h2><b>Time-based authentication:</b></h2> <p contenteditable="true" class="answer-field" data-key="sec-timeauth" placeholder="Type your answer..."></p>
-          <h2><b>Least privilege:</b></h2> <p contenteditable="true" class="answer-field" data-key="sec-leastpriv" placeholder="Type your answer..."></p>
-          <h2><b>Role-based access control:</b></h2> <p contenteditable="true" class="answer-field" data-key="sec-rbac" placeholder="Type your answer..."></p>
-          <h2><b>Geofencing:</b></h2> <p contenteditable="true" class="answer-field" data-key="sec-geofence" placeholder="Type your answer..."></p>
-
-        <h2><b>Physical security:</b></h2>
-          <h2><b>Cameras:</b></h2> <p contenteditable="true" class="answer-field" data-key="physsec-cam" placeholder="Type your answer..."></p>
-          <h2><b>Locks:</b></h2> <p contenteditable="true" class="answer-field" data-key="physsec-locks" placeholder="Type your answer..."></p>
-
-        <h2><b>Deception technologies:</b></h2>
-          <h2><b>Honeypot:</b></h2> <p contenteditable="true" class="answer-field" data-key="deception-honeypot" placeholder="Type your answer..."></p>
-          <h2><b>Honeynet:</b></h2> <p contenteditable="true" class="answer-field" data-key="deception-honeynet" placeholder="Type your answer..."></p>
-
-        <h2><b>Security terminology:</b></h2>
-          <h2><b>Risk:</b></h2> <p contenteditable="true" class="answer-field" data-key="term-risk" placeholder="Type your answer..."></p>
-          <h2><b>Vulnerability:</b></h2> <p contenteditable="true" class="answer-field" data-key="term-vuln" placeholder="Type your answer..."></p>
-          <h2><b>Exploit:</b></h2> <p contenteditable="true" class="answer-field" data-key="term-exploit" placeholder="Type your answer..."></p>
-          <h2><b>Threat:</b></h2> <p contenteditable="true" class="answer-field" data-key="term-threat" placeholder="Type your answer..."></p>
-          <h2><b>CIA Triad:</b></h2> <p contenteditable="true" class="answer-field" data-key="term-cia" placeholder="Type your answer..."></p>
-
-        <h2><b>Audits and compliance:</b></h2>
-          <h2><b>Data locality:</b></h2> <p contenteditable="true" class="answer-field" data-key="comp-locality" placeholder="Type your answer..."></p>
-          <h2><b>PCI DSS:</b></h2> <p contenteditable="true" class="answer-field" data-key="comp-pci" placeholder="Type your answer..."></p>
-          <h2><b>GDPR:</b></h2> <p contenteditable="true" class="answer-field" data-key="comp-gdpr" placeholder="Type your answer..."></p>
-
-        <h2><b>Network segmentation:</b></h2>
-          <h2><b>IoT:</b></h2> <p contenteditable="true" class="answer-field" data-key="seg-iot" placeholder="Type your answer..."></p>
-          <h2><b>IIoT:</b></h2> <p contenteditable="true" class="answer-field" data-key="seg-iiot" placeholder="Type your answer..."></p>
-          <h2><b>SCADA:</b></h2> <p contenteditable="true" class="answer-field" data-key="seg-scada" placeholder="Type your answer..."></p>
-          <h2><b>ICS:</b></h2> <p contenteditable="true" class="answer-field" data-key="seg-ics" placeholder="Type your answer..."></p>
-          <h2><b>OT:</b></h2> <p contenteditable="true" class="answer-field" data-key="seg-ot" placeholder="Type your answer..."></p>
-          <h2><b>Guest:</b></h2> <p contenteditable="true" class="answer-field" data-key="seg-guest" placeholder="Type your answer..."></p>
-          <h2><b>BYOD:</b></h2> <p contenteditable="true" class="answer-field" data-key="seg-byod" placeholder="Type your answer..."></p>
-
-        <h2><b>Types of attacks:</b></h2>
-          <h2><b>DoS/DDoS:</b></h2> <p contenteditable="true" class="answer-field" data-key="atk-ddos" placeholder="Type your answer..."></p>
-          <h2><b>VLAN hopping:</b></h2> <p contenteditable="true" class="answer-field" data-key="atk-vlanhopping" placeholder="Type your answer..."></p>
-          <h2><b>MAC flooding:</b></h2> <p contenteditable="true" class="answer-field" data-key="atk-macflood" placeholder="Type your answer..."></p>
-          <h2><b>ARP poisoning/spoofing:</b></h2> <p contenteditable="true" class="answer-field" data-key="atk-arp" placeholder="Type your answer..."></p>
-          <h2><b>DNS poisoning/spoofing:</b></h2> <p contenteditable="true" class="answer-field" data-key="atk-dns" placeholder="Type your answer..."></p>
-          <h2><b>Rogue devices/services:</b></h2> <p contenteditable="true" class="answer-field" data-key="atk-rogue" placeholder="Type your answer..."></p>
-          <h2><b>Evil twin:</b></h2> <p contenteditable="true" class="answer-field" data-key="atk-eviltwin" placeholder="Type your answer..."></p>
-          <h2><b>On-path attack:</b></h2> <p contenteditable="true" class="answer-field" data-key="atk-onpath" placeholder="Type your answer..."></p>
-          <h2><b>Phishing:</b></h2> <p contenteditable="true" class="answer-field" data-key="atk-phishing" placeholder="Type your answer..."></p>
-          <h2><b>Dumpster diving:</b></h2> <p contenteditable="true" class="answer-field" data-key="atk-dumpster" placeholder="Type your answer..."></p>
-          <h2><b>Shoulder surfing:</b></h2> <p contenteditable="true" class="answer-field" data-key="atk-shoulder" placeholder="Type your answer..."></p>
-          <h2><b>Tailgating:</b></h2> <p contenteditable="true" class="answer-field" data-key="atk-tailgate" placeholder="Type your answer..."></p>
-
-        <h2><b>Security features and defense:</b></h2>
-          <h2><b>Device hardening:</b></h2> <p contenteditable="true" class="answer-field" data-key="def-harden" placeholder="Type your answer..."></p>
-          <h2><b>NAC:</b></h2> <p contenteditable="true" class="answer-field" data-key="def-nac" placeholder="Type your answer..."></p>
-          <h2><b>Key management:</b></h2> <p contenteditable="true" class="answer-field" data-key="def-keymgmt" placeholder="Type your answer..."></p>
-          <h2><b>ACL:</b></h2> <p contenteditable="true" class="answer-field" data-key="def-acl" placeholder="Type your answer..."></p>
-          <h2><b>URL/content filtering:</b></h2> <p contenteditable="true" class="answer-field" data-key="def-urlfilter" placeholder="Type your answer..."></p>
-          <h2><b>Trusted vs. untrusted zones:</b></h2> <p contenteditable="true" class="answer-field" data-key="def-zones" placeholder="Type your answer..."></p>
-          <h2><b>Screened subnet:</b></h2> <p contenteditable="true" class="answer-field" data-key="def-screenedsub" placeholder="Type your answer..."></p>
-
-
-      <h1>Network Troubleshooting (24%):</h1>
-
-        <h2><b>Troubleshooting methodology:</b></h2>
-          <h2><b>Identify the problem:</b></h2> <p contenteditable="true" class="answer-field" data-key="ts-identify" placeholder="Type your answer..."></p>
-          <h2><b>Establish a theory:</b></h2> <p contenteditable="true" class="answer-field" data-key="ts-theory" placeholder="Type your answer..."></p>
-          <h2><b>Test the theory:</b></h2> <p contenteditable="true" class="answer-field" data-key="ts-test" placeholder="Type your answer..."></p>
-          <h2><b>Plan and implement a solution:</b></h2> <p contenteditable="true" class="answer-field" data-key="ts-plan" placeholder="Type your answer..."></p>
-          <h2><b>Verify functionality:</b></h2> <p contenteditable="true" class="answer-field" data-key="ts-verify" placeholder="Type your answer..."></p>
-          <h2><b>Document findings:</b></h2> <p contenteditable="true" class="answer-field" data-key="ts-document" placeholder="Type your answer..."></p>
-
-        <h2><b>Cabling and physical interface issues:</b></h2>
-          <h2><b>Incorrect cable type:</b></h2> <p contenteditable="true" class="answer-field" data-key="cable-type" placeholder="Type your answer..."></p>
-          <h2><b>Signal degradation:</b></h2> <p contenteditable="true" class="answer-field" data-key="cable-degrade" placeholder="Type your answer..."></p>
-          <h2><b>Improper termination:</b></h2> <p contenteditable="true" class="answer-field" data-key="cable-term" placeholder="Type your answer..."></p>
-          <h2><b>TX/RX transposed:</b></h2> <p contenteditable="true" class="answer-field" data-key="cable-txrx" placeholder="Type your answer..."></p>
-          <h2><b>Increasing counters:</b></h2> <p contenteditable="true" class="answer-field" data-key="cable-counters" placeholder="Type your answer..."></p>
-          <h2><b>Port status:</b></h2> <p contenteditable="true" class="answer-field" data-key="cable-portstatus" placeholder="Type your answer..."></p>
-          <h2><b>PoE:</b></h2> <p contenteditable="true" class="answer-field" data-key="cable-poe" placeholder="Type your answer..."></p>
-          <h2><b>Transceiver mismatch:</b></h2> <p contenteditable="true" class="answer-field" data-key="cable-xcvr" placeholder="Type your answer..."></p>
-          <h2><b>Signal strength:</b></h2> <p contenteditable="true" class="answer-field" data-key="cable-sigstrength" placeholder="Type your answer..."></p>
-
-        <h2><b>Network services issues:</b></h2>
-          <h2><b>STP issues:</b></h2> <p contenteditable="true" class="answer-field" data-key="issue-stp" placeholder="Type your answer..."></p>
-          <h2><b>VLAN assignment:</b></h2> <p contenteditable="true" class="answer-field" data-key="issue-vlan" placeholder="Type your answer..."></p>
-          <h2><b>ACLs:</b></h2> <p contenteditable="true" class="answer-field" data-key="issue-acl" placeholder="Type your answer..."></p>
-          <h2><b>Routing table issues:</b></h2> <p contenteditable="true" class="answer-field" data-key="issue-route" placeholder="Type your answer..."></p>
-          <h2><b>Default routes:</b></h2> <p contenteditable="true" class="answer-field" data-key="issue-defroute" placeholder="Type your answer..."></p>
-          <h2><b>Address pool exhaustion:</b></h2> <p contenteditable="true" class="answer-field" data-key="issue-poolexhaust" placeholder="Type your answer..."></p>
-          <h2><b>Incorrect gateway/IP/subnet mask:</b></h2> <p contenteditable="true" class="answer-field" data-key="issue-gwip" placeholder="Type your answer..."></p>
-
-        <h2><b>Performance issues:</b></h2>
-          <h2><b>Congestion:</b></h2> <p contenteditable="true" class="answer-field" data-key="perf-congestion" placeholder="Type your answer..."></p>
-          <h2><b>Latency:</b></h2> <p contenteditable="true" class="answer-field" data-key="perf-latency" placeholder="Type your answer..."></p>
-          <h2><b>Packet loss:</b></h2> <p contenteditable="true" class="answer-field" data-key="perf-pktloss" placeholder="Type your answer..."></p>
-          <h2><b>Wireless interference:</b></h2> <p contenteditable="true" class="answer-field" data-key="perf-wifiinterf" placeholder="Type your answer..."></p>
-
-        <h2><b>Tools and protocols:</b></h2>
-          <h2><b>Protocol analyzers:</b></h2> <p contenteditable="true" class="answer-field" data-key="tool-analyzer" placeholder="Type your answer..."></p>
-          <h2><b>Command line tools:</b></h2> <p contenteditable="true" class="answer-field" data-key="tool-cli" placeholder="Type your answer..."></p>
-          <h2><b>Cable testers:</b></h2> <p contenteditable="true" class="answer-field" data-key="tool-cabletester" placeholder="Type your answer..."></p>
-          <h2><b>Wi-Fi analyzers:</b></h2> <p contenteditable="true" class="answer-field" data-key="tool-wifianalyzer" placeholder="Type your answer..."></p>
-
+  <div class="toolbar">
+    <div class="modes" id="modes">
+      <button data-mode="flash" class="active">Flashcards</button>
+      <button data-mode="mc">Multiple choice</button>
+      <button data-mode="type">Type answer</button>
     </div>
+    <select id="domainFilter" aria-label="Filter by domain"></select>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="lbl">Score</div><div class="val" id="score">0</div></div>
+    <div class="stat"><div class="lbl">Streak</div><div class="val"><span id="streak">0</span> <span class="fire" id="fire"></span></div></div>
+    <div class="stat"><div class="lbl">Best</div><div class="val" id="best">0</div></div>
+    <div class="stat"><div class="lbl">Mastered</div><div class="val"><span id="masteredCount">0</span><span style="font-size:1rem;color:var(--muted)">/<span id="totalCount">0</span></span></div></div>
+  </div>
+
+  <section class="card" id="card"></section>
+
+  <div class="card-actions" id="cardActions">
+    <button class="btn primary" id="nextBtn" disabled>Next &rarr;</button>
+    <button class="btn ghost" id="restartBtn">Restart round</button>
+    <span class="shortcuts" id="shortcuts"></span>
+  </div>
+
+  <details class="progress-panel" open>
+    <summary>Progress by domain</summary>
+    <div id="bars"></div>
+    <div style="margin-top:14px"><button class="btn ghost danger" id="resetBtn">Reset all progress</button></div>
   </details>
-</section>
 
-
-<section class="topic">
-  <details>
-    <summary>
-      <h2>Port Numbers</h2>
-      <span class="arrow"></span>
-    </summary>
-    <div class="content">
-
-      <div class="ports-controls">
-        <button class="ports-btn" id="toggleQuizBtn" onclick="togglePortQuiz()">Quiz Mode</button>
-        <button class="ports-btn" id="toggleTableBtn" onclick="togglePortTable()">Reference Table</button>
-      </div>
-
-      <!-- REFERENCE TABLE -->
-      <div id="portTableView">
-        <table class="port-table">
-          <thead>
-            <tr><th>Port</th><th>Protocol</th><th>Transport</th><th>Notes</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>20</td><td>FTP (Data)</td><td>TCP</td><td>Active mode data transfer</td></tr>
-            <tr><td>21</td><td>FTP (Control)</td><td>TCP</td><td>Commands, authentication</td></tr>
-            <tr><td>22</td><td>SSH / SFTP / SCP</td><td>TCP</td><td>Encrypted remote access &amp; file transfer</td></tr>
-            <tr><td>23</td><td>Telnet</td><td>TCP</td><td>Unencrypted remote access — insecure</td></tr>
-            <tr><td>25</td><td>SMTP</td><td>TCP</td><td>Sends email between servers</td></tr>
-            <tr><td>49</td><td>TACACS+</td><td>TCP</td><td>Cisco AAA — separates auth/authz/acct</td></tr>
-            <tr><td>53</td><td>DNS</td><td>TCP/UDP</td><td>UDP for queries; TCP for zone transfers</td></tr>
-            <tr><td>67</td><td>DHCP (Server)</td><td>UDP</td><td>Server listens here</td></tr>
-            <tr><td>68</td><td>DHCP (Client)</td><td>UDP</td><td>Client receives response here</td></tr>
-            <tr><td>69</td><td>TFTP</td><td>UDP</td><td>Trivial FTP — no auth; used for IOS/config transfers</td></tr>
-            <tr><td>80</td><td>HTTP</td><td>TCP</td><td>Unencrypted web traffic</td></tr>
-            <tr><td>88</td><td>Kerberos</td><td>TCP/UDP</td><td>Authentication in Active Directory</td></tr>
-            <tr><td>110</td><td>POP3</td><td>TCP</td><td>Retrieves email, deletes from server</td></tr>
-            <tr><td>119</td><td>NNTP</td><td>TCP</td><td>Network News Transfer Protocol</td></tr>
-            <tr><td>123</td><td>NTP</td><td>UDP</td><td>Time synchronization</td></tr>
-            <tr><td>137</td><td>NetBIOS Name</td><td>UDP</td><td>Name resolution over NetBIOS</td></tr>
-            <tr><td>138</td><td>NetBIOS Datagram</td><td>UDP</td><td>Connectionless NetBIOS communication</td></tr>
-            <tr><td>139</td><td>NetBIOS Session</td><td>TCP</td><td>Connection-oriented NetBIOS (SMB over NetBIOS)</td></tr>
-            <tr><td>143</td><td>IMAP</td><td>TCP</td><td>Retrieves email, keeps on server</td></tr>
-            <tr><td>161</td><td>SNMP</td><td>UDP</td><td>Polls network devices for monitoring</td></tr>
-            <tr><td>162</td><td>SNMP Trap</td><td>UDP</td><td>Device-initiated alerts to manager</td></tr>
-            <tr><td>179</td><td>BGP</td><td>TCP</td><td>Internet routing protocol between ASes</td></tr>
-            <tr><td>389</td><td>LDAP</td><td>TCP</td><td>Directory queries (Active Directory)</td></tr>
-            <tr><td>443</td><td>HTTPS</td><td>TCP</td><td>Encrypted web traffic (TLS)</td></tr>
-            <tr><td>445</td><td>SMB</td><td>TCP</td><td>Windows file sharing / Active Directory</td></tr>
-            <tr><td>465</td><td>SMTPS</td><td>TCP</td><td>SMTP over SSL (legacy)</td></tr>
-            <tr><td>500</td><td>IKE / ISAKMP</td><td>UDP</td><td>IPSec key exchange</td></tr>
-            <tr><td>514</td><td>Syslog</td><td>UDP</td><td>Log forwarding to central server</td></tr>
-            <tr><td>587</td><td>SMTP (STARTTLS)</td><td>TCP</td><td>Submission port — encrypted SMTP</td></tr>
-            <tr><td>636</td><td>LDAPS</td><td>TCP</td><td>LDAP over SSL</td></tr>
-            <tr><td>993</td><td>IMAPS</td><td>TCP</td><td>IMAP over SSL</td></tr>
-            <tr><td>995</td><td>POP3S</td><td>TCP</td><td>POP3 over SSL</td></tr>
-            <tr><td>1433</td><td>MS SQL Server</td><td>TCP</td><td>Microsoft SQL database</td></tr>
-            <tr><td>1521</td><td>Oracle DB</td><td>TCP</td><td>Oracle database listener</td></tr>
-            <tr><td>1701</td><td>L2TP</td><td>UDP</td><td>Layer 2 Tunneling Protocol (VPN)</td></tr>
-            <tr><td>1720</td><td>H.323</td><td>TCP</td><td>VoIP call signaling</td></tr>
-            <tr><td>1723</td><td>PPTP</td><td>TCP</td><td>Point-to-Point Tunneling Protocol (VPN)</td></tr>
-            <tr><td>1812</td><td>RADIUS (Auth)</td><td>UDP</td><td>Authentication and authorization</td></tr>
-            <tr><td>1813</td><td>RADIUS (Acct)</td><td>UDP</td><td>Accounting</td></tr>
-            <tr><td>3306</td><td>MySQL</td><td>TCP</td><td>MySQL / MariaDB database</td></tr>
-            <tr><td>3389</td><td>RDP</td><td>TCP</td><td>Windows Remote Desktop</td></tr>
-            <tr><td>4500</td><td>IPSec NAT-T</td><td>UDP</td><td>IPSec through NAT</td></tr>
-            <tr><td>5060</td><td>SIP</td><td>TCP/UDP</td><td>VoIP call setup/teardown</td></tr>
-            <tr><td>5061</td><td>SIP (TLS)</td><td>TCP</td><td>Encrypted SIP</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- QUIZ MODE -->
-      <div id="portQuizView" style="display:none;">
-        <div class="quiz-stats">
-          Score: <span id="quizScore">0</span> / <span id="quizTotal">0</span>
-          &nbsp;&nbsp;
-          <button class="ports-btn" onclick="resetPortQuiz()">Restart</button>
-        </div>
-        <div class="quiz-card" id="quizCard">
-          <div class="quiz-protocol" id="quizProtocol">—</div>
-          <div class="quiz-transport" id="quizTransport">—</div>
-          <input class="quiz-input" id="quizInput" type="text" placeholder="Enter port number(s)" onkeydown="if(event.key==='Enter') checkPortAnswer()" />
-          <button class="ports-btn" onclick="checkPortAnswer()">Check</button>
-          <div class="quiz-feedback" id="quizFeedback"></div>
-          <button class="ports-btn" id="quizNextBtn" onclick="nextPortQuestion()" style="display:none; margin-top:10px;">Next →</button>
-        </div>
-        <div class="quiz-progress" id="quizProgress"></div>
-      </div>
-
-    </div>
-  </details>
-</section>
-
-
-<button class="clear-btn" onclick="clearAnswers()">Clear All</button>
+</div>
 
 <script>
-  const STORAGE_KEY = 'archive18_answers';
+const CARDS = [{"id": 0, "domain": "Networking Concepts", "kind": "term", "front": "Layer 1: Physical layer", "back": "bits in a wire (Hub, Repeater, Network cabling)", "prompt": "bits in a wire (Hub, Repeater, Network cabling)", "answer": "Layer 1: Physical layer", "accept": ["layer 1 physical layer", "physical layer"], "sub": "OSI Model"}, {"id": 1, "domain": "Networking Concepts", "kind": "term", "front": "Layer 2: Data Link", "back": "physical addressing (MAC addresses(48-bit), Bridge, Switch, NIC(Network adapter), ARP, Frames)", "prompt": "physical addressing (MAC addresses(48-bit), Bridge, Switch, NIC(Network adapter), ARP, Frames)", "answer": "Layer 2: Data Link", "accept": ["data link", "layer 2 data link"], "sub": "OSI Model"}, {"id": 2, "domain": "Networking Concepts", "kind": "term", "front": "Layer 3: Network", "back": "path determination (Routers, IP, ICMP, Packets)", "prompt": "path determination (Routers, IP, ICMP, Packets)", "answer": "Layer 3: Network", "accept": ["layer 3 network", "network"], "sub": "OSI Model"}, {"id": 3, "domain": "Networking Concepts", "kind": "term", "front": "Layer 4: Transport", "back": "TCP(Segments) = reliable/connection-oriented, UDP(Datagrams) = fast/connectionless & ports", "prompt": "TCP(Segments) = reliable/connection-oriented, UDP(Datagrams) = fast/connectionless & ports", "answer": "Layer 4: Transport", "accept": ["layer 4 transport", "transport"], "sub": "OSI Model"}, {"id": 4, "domain": "Networking Concepts", "kind": "term", "front": "Layer 5: Session", "back": "managing connections (opening, closing, and maintaining connections)", "prompt": "managing connections (opening, closing, and maintaining connections)", "answer": "Layer 5: Session", "accept": ["layer 5 session", "session"], "sub": "OSI Model"}, {"id": 5, "domain": "Networking Concepts", "kind": "term", "front": "Layer 6: Presentation", "back": "data translation (data compression, and data encryption/decryption)", "prompt": "data translation (data compression, and data encryption/decryption)", "answer": "Layer 6: Presentation", "accept": ["layer 6 presentation", "presentation"], "sub": "OSI Model"}, {"id": 6, "domain": "Networking Concepts", "kind": "term", "front": "Layer 7: Application", "back": "user interface (direct interaction between the end-user and the network & HTTP, FTP, SMTP)", "prompt": "user interface (direct interaction between the end-user and the network & HTTP, FTP, SMTP)", "answer": "Layer 7: Application", "accept": ["application", "layer 7 application"], "sub": "OSI Model"}, {"id": 7, "domain": "Networking Concepts", "kind": "term", "front": "Routers", "back": "connect networks (multilayer switch)", "prompt": "connect networks (multilayer switch)", "answer": "Routers", "accept": ["routers"], "sub": "Networking appliances"}, {"id": 8, "domain": "Networking Concepts", "kind": "term", "front": "Switches", "back": "make networks (use MAC addresses)", "prompt": "make networks (use MAC addresses)", "answer": "Switches", "accept": ["switches"], "sub": "Networking appliances"}, {"id": 9, "domain": "Networking Concepts", "kind": "term", "front": "Hubs", "back": "make networks (no one should be using these today)", "prompt": "make networks (no one should be using these today)", "answer": "Hubs", "accept": ["hubs"], "sub": "Networking appliances"}, {"id": 10, "domain": "Networking Concepts", "kind": "term", "front": "Firewall", "back": "controls ingoing and outgoing traffic based on a set of rules (named after literal firewalls in buildings)", "prompt": "controls ingoing and outgoing traffic based on a set of rules (named after literal firewalls in buildings)", "answer": "Firewall", "accept": ["firewall"], "sub": "Networking appliances"}, {"id": 11, "domain": "Networking Concepts", "kind": "term", "front": "IDS/IPS", "back": "Intrusion Detection System (it just monitors) Intrusion Protection System (actually blocks)", "prompt": "Intrusion Detection System (it just monitors) Intrusion Protection System (actually blocks)", "answer": "IDS/IPS", "accept": ["ids", "ids ips", "ips"], "sub": "Networking appliances"}, {"id": 12, "domain": "Networking Concepts", "kind": "term", "front": "Load Balancer", "back": "dynamically distributes incoming network traffic across multiple servers to prevent any single machine from becoming overwhelmed", "prompt": "dynamically distributes incoming network traffic across multiple servers to prevent any single machine from becoming overwhelmed", "answer": "Load Balancer", "accept": ["load balancer"], "sub": "Networking appliances"}, {"id": 13, "domain": "Networking Concepts", "kind": "term", "front": "Proxies", "back": "gateway between your device and the internet", "prompt": "gateway between your device and the internet", "answer": "Proxies", "accept": ["proxies"], "sub": "Networking appliances"}, {"id": 14, "domain": "Networking Concepts", "kind": "term", "front": "NAS", "back": "Network Attached Storage — file-level storage accessed over a network (SMB/NFS)", "prompt": "Network Attached Storage — file-level storage accessed over a network (SMB/NFS)", "answer": "NAS", "accept": ["nas"], "sub": "Networking appliances"}, {"id": 15, "domain": "Networking Concepts", "kind": "term", "front": "SAN", "back": "Storage Area Network — block-level storage, high speed, expensive, used by servers", "prompt": "Storage Area Network — block-level storage, high speed, expensive, used by servers", "answer": "SAN", "accept": ["san"], "sub": "Networking appliances"}, {"id": 16, "domain": "Networking Concepts", "kind": "term", "front": "NFV", "back": "Network Functions Virtualization (replaces hardware with software)", "prompt": "Network Functions Virtualization (replaces hardware with software)", "answer": "NFV", "accept": ["nfv"], "sub": "Cloud concepts"}, {"id": 17, "domain": "Networking Concepts", "kind": "term", "front": "VPC", "back": "Virtual Private Cloud (private network hosted within a public cloud provider's infrastructure)", "prompt": "Virtual Private Cloud (private network hosted within a public cloud provider's infrastructure)", "answer": "VPC", "accept": ["vpc"], "sub": "Cloud concepts"}, {"id": 18, "domain": "Networking Concepts", "kind": "term", "front": "NSG", "back": "Network Security Group — virtual firewall for cloud computing environments", "prompt": "Network Security Group — virtual firewall for cloud computing environments", "answer": "NSG", "accept": ["nsg"], "sub": "Cloud concepts"}, {"id": 19, "domain": "Networking Concepts", "kind": "term", "front": "Cloud Gateways", "back": "networking devices or virtual services that bridge on-premises infrastructure to cloud environments", "prompt": "networking devices or virtual services that bridge on-premises infrastructure to cloud environments", "answer": "Cloud Gateways", "accept": ["cloud gateways"], "sub": "Cloud concepts"}, {"id": 20, "domain": "Networking Concepts", "kind": "term", "front": "Deployment models (public, private, hybrid)", "back": "where your infrastructure is hosted, who manages it, and who has access to it (public = provider-owned, private = you own it, hybrid = both)", "prompt": "where your infrastructure is hosted, who manages it, and who has access to it (public = provider-owned, private = you own it, hybrid = both)", "answer": "Deployment models (public, private, hybrid)", "accept": ["deployment models", "deployment models public private hybrid", "public private hybrid"], "sub": "Cloud concepts"}, {"id": 21, "domain": "Networking Concepts", "kind": "term", "front": "FTP", "back": "File Transfer Protocol — Layer 7 — TCP ports 20 (data) & 21 (control), unencrypted", "prompt": "File Transfer Protocol — Layer 7 — TCP ports 20 (data) & 21 (control), unencrypted", "answer": "FTP", "accept": ["ftp"], "sub": "Ports and protocols"}, {"id": 22, "domain": "Networking Concepts", "kind": "term", "front": "SFTP", "back": "SSH File Transfer Protocol — Layer 7 — TCP port 22, encrypted file transfer over SSH", "prompt": "SSH File Transfer Protocol — Layer 7 — TCP port 22, encrypted file transfer over SSH", "answer": "SFTP", "accept": ["sftp"], "sub": "Ports and protocols"}, {"id": 23, "domain": "Networking Concepts", "kind": "term", "front": "Unicast", "back": "one-to-one — single sender to single receiver (most normal traffic)", "prompt": "one-to-one — single sender to single receiver (most normal traffic)", "answer": "Unicast", "accept": ["unicast"], "sub": "Traffic types"}, {"id": 24, "domain": "Networking Concepts", "kind": "term", "front": "Multicast", "back": "one-to-many — single sender to a subscribed group (e.g. video streaming)", "prompt": "one-to-many — single sender to a subscribed group (e.g. video streaming)", "answer": "Multicast", "accept": ["multicast"], "sub": "Traffic types"}, {"id": 25, "domain": "Networking Concepts", "kind": "term", "front": "Anycast", "back": "one-to-nearest — packet sent to the closest node in a group (used in DNS/CDN)", "prompt": "one-to-nearest — packet sent to the closest node in a group (used in DNS/CDN)", "answer": "Anycast", "accept": ["anycast"], "sub": "Traffic types"}, {"id": 26, "domain": "Networking Concepts", "kind": "term", "front": "Broadcast", "back": "one-to-all — sent to every device on the network segment (e.g. ARP requests)", "prompt": "one-to-all — sent to every device on the network segment (e.g. ARP requests)", "answer": "Broadcast", "accept": ["broadcast"], "sub": "Traffic types"}, {"id": 27, "domain": "Networking Concepts", "kind": "term", "front": "802.11", "back": "Wi-Fi standard family — a/b/g/n/ac/ax (Wi-Fi 6); defines speeds, frequencies, and modulation", "prompt": "Wi-Fi standard family — a/b/g/n/ac/ax (Wi-Fi 6); defines speeds, frequencies, and modulation", "answer": "802.11", "accept": ["802 11"], "sub": "Transmission media (Wireless)"}, {"id": 28, "domain": "Networking Concepts", "kind": "term", "front": "Cellular", "back": "4G LTE / 5G — wide-area wireless via cell towers; 5G adds mmWave for high speed/low latency", "prompt": "4G LTE / 5G — wide-area wireless via cell towers; 5G adds mmWave for high speed/low latency", "answer": "Cellular", "accept": ["cellular"], "sub": "Transmission media (Wireless)"}, {"id": 29, "domain": "Networking Concepts", "kind": "term", "front": "Satellite", "back": "long-distance wireless via orbiting satellites — high latency (LEO like Starlink is lower latency)", "prompt": "long-distance wireless via orbiting satellites — high latency (LEO like Starlink is lower latency)", "answer": "Satellite", "accept": ["satellite"], "sub": "Transmission media (Wireless)"}, {"id": 30, "domain": "Networking Concepts", "kind": "term", "front": "Fiber", "back": "light pulses through glass/plastic — immune to EMI, very long distances, high speed (SMF = single-mode, MMF = multi-mode)", "prompt": "light pulses through glass/plastic — immune to EMI, very long distances, high speed (SMF = single-mode, MMF = multi-mode)", "answer": "Fiber", "accept": ["fiber"], "sub": "Transmission media (Wired)"}, {"id": 31, "domain": "Networking Concepts", "kind": "term", "front": "Coaxial", "back": "copper core with shielding — used in cable TV/internet (RG-6), BNC connectors", "prompt": "copper core with shielding — used in cable TV/internet (RG-6), BNC connectors", "answer": "Coaxial", "accept": ["coaxial"], "sub": "Transmission media (Wired)"}, {"id": 32, "domain": "Networking Concepts", "kind": "term", "front": "DAC (Direct Attach Copper)", "back": "short copper cable with SFP/QSFP ends — used in datacenters for rack-to-rack, cheaper than fiber for short runs", "prompt": "short copper cable with SFP/QSFP ends — used in datacenters for rack-to-rack, cheaper than fiber for short runs", "answer": "DAC (Direct Attach Copper)", "accept": ["dac", "dac direct attach copper", "direct attach copper"], "sub": "Transmission media (Wired)"}, {"id": 33, "domain": "Networking Concepts", "kind": "term", "front": "SC", "back": "Subscriber Connector — square push-pull fiber connector, older standard", "prompt": "Subscriber Connector — square push-pull fiber connector, older standard", "answer": "SC", "accept": ["sc"], "sub": "Transceivers and connectors"}, {"id": 34, "domain": "Networking Concepts", "kind": "term", "front": "LC", "back": "Lucent Connector — small square snap-in fiber connector, most common in datacenters today", "prompt": "Lucent Connector — small square snap-in fiber connector, most common in datacenters today", "answer": "LC", "accept": ["lc"], "sub": "Transceivers and connectors"}, {"id": 35, "domain": "Networking Concepts", "kind": "term", "front": "ST", "back": "Straight Tip — round bayonet-style fiber connector, older, used in legacy installs", "prompt": "Straight Tip — round bayonet-style fiber connector, older, used in legacy installs", "answer": "ST", "accept": ["st"], "sub": "Transceivers and connectors"}, {"id": 36, "domain": "Networking Concepts", "kind": "term", "front": "MPO", "back": "Multi-fiber Push On — high-density fiber connector, holds 12–24 fibers, used in datacenter trunk cables", "prompt": "Multi-fiber Push On — high-density fiber connector, holds 12–24 fibers, used in datacenter trunk cables", "answer": "MPO", "accept": ["mpo"], "sub": "Transceivers and connectors"}, {"id": 37, "domain": "Networking Concepts", "kind": "term", "front": "RJ11", "back": "4-pin/6-position connector — used for telephone lines (POTS)", "prompt": "4-pin/6-position connector — used for telephone lines (POTS)", "answer": "RJ11", "accept": ["rj11"], "sub": "Transceivers and connectors"}, {"id": 38, "domain": "Networking Concepts", "kind": "term", "front": "RJ45", "back": "8-pin connector — standard Ethernet connector for Cat5e/Cat6/Cat6a", "prompt": "8-pin connector — standard Ethernet connector for Cat5e/Cat6/Cat6a", "answer": "RJ45", "accept": ["rj45"], "sub": "Transceivers and connectors"}, {"id": 39, "domain": "Networking Concepts", "kind": "term", "front": "F-type", "back": "threaded coaxial connector — used for cable TV and broadband coax", "prompt": "threaded coaxial connector — used for cable TV and broadband coax", "answer": "F-type", "accept": ["f type"], "sub": "Transceivers and connectors"}, {"id": 40, "domain": "Networking Concepts", "kind": "term", "front": "BNC", "back": "Bayonet Neill–Concelman — twist-lock coaxial connector, used in older 10BASE2 Ethernet and video", "prompt": "Bayonet Neill–Concelman — twist-lock coaxial connector, used in older 10BASE2 Ethernet and video", "answer": "BNC", "accept": ["bnc"], "sub": "Transceivers and connectors"}, {"id": 41, "domain": "Networking Concepts", "kind": "term", "front": "Mesh", "back": "every node connects to every other node — full mesh = max redundancy, partial mesh = some redundancy", "prompt": "every node connects to every other node — full mesh = max redundancy, partial mesh = some redundancy", "answer": "Mesh", "accept": ["mesh"], "sub": "Network topologies"}, {"id": 42, "domain": "Networking Concepts", "kind": "term", "front": "Hybrid", "back": "combination of two or more topologies (e.g. star + mesh)", "prompt": "combination of two or more topologies (e.g. star + mesh)", "answer": "Hybrid", "accept": ["hybrid"], "sub": "Network topologies"}, {"id": 43, "domain": "Networking Concepts", "kind": "term", "front": "Star/Hub and spoke", "back": "all devices connect to a central hub/switch — most common LAN topology; single point of failure at center", "prompt": "all devices connect to a central hub/switch — most common LAN topology; single point of failure at center", "answer": "Star/Hub and spoke", "accept": ["hub and spoke", "star", "star hub and spoke"], "sub": "Network topologies"}, {"id": 44, "domain": "Networking Concepts", "kind": "term", "front": "Spine and leaf", "back": "datacenter topology — leaf switches connect to all spine switches; any leaf can reach any other in 2 hops", "prompt": "datacenter topology — leaf switches connect to all spine switches; any leaf can reach any other in 2 hops", "answer": "Spine and leaf", "accept": ["spine and leaf"], "sub": "Network topologies"}, {"id": 45, "domain": "Networking Concepts", "kind": "term", "front": "Point-to-point", "back": "direct link between exactly two devices — simplest topology", "prompt": "direct link between exactly two devices — simplest topology", "answer": "Point-to-point", "accept": ["point to point"], "sub": "Network topologies"}, {"id": 46, "domain": "Networking Concepts", "kind": "term", "front": "Three-tier", "back": "enterprise LAN: core (fast backbone) → distribution (routing/policies) → access (end devices)", "prompt": "enterprise LAN: core (fast backbone) → distribution (routing/policies) → access (end devices)", "answer": "Three-tier", "accept": ["three tier"], "sub": "Network topologies"}, {"id": 47, "domain": "Networking Concepts", "kind": "term", "front": "Collapsed core", "back": "two-tier — core and distribution layers merged into one; used in smaller networks", "prompt": "two-tier — core and distribution layers merged into one; used in smaller networks", "answer": "Collapsed core", "accept": ["collapsed core"], "sub": "Network topologies"}, {"id": 48, "domain": "Networking Concepts", "kind": "term", "front": "Public vs. private", "back": "public = routable on internet (assigned by ISP), private = RFC1918 ranges, not routable publicly (requires NAT)", "prompt": "public = routable on internet (assigned by ISP), private = RFC1918 ranges, not routable publicly (requires NAT)", "answer": "Public vs. private", "accept": ["public vs private"], "sub": "IPv4 addressing"}, {"id": 49, "domain": "Networking Concepts", "kind": "term", "front": "APIPA", "back": "Automatic Private IP Addressing — 169.254.0.0/16 — assigned by OS when DHCP fails", "prompt": "Automatic Private IP Addressing — 169.254.0.0/16 — assigned by OS when DHCP fails", "answer": "APIPA", "accept": ["apipa"], "sub": "IPv4 addressing"}, {"id": 50, "domain": "Networking Concepts", "kind": "term", "front": "RFC1918", "back": "private IP ranges: 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16", "prompt": "private IP ranges: 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16", "answer": "RFC1918", "accept": ["rfc1918"], "sub": "IPv4 addressing"}, {"id": 51, "domain": "Networking Concepts", "kind": "term", "front": "Loopback", "back": "127.0.0.0/8 — traffic sent to itself; 127.0.0.1 is the standard loopback address", "prompt": "127.0.0.0/8 — traffic sent to itself; 127.0.0.1 is the standard loopback address", "answer": "Loopback", "accept": ["loopback"], "sub": "IPv4 addressing"}, {"id": 52, "domain": "Networking Concepts", "kind": "term", "front": "Subnetting (VLSM, CIDR)", "back": "VLSM = variable length subnet masks (different size subnets); CIDR = classless notation like /24 to replace old classful system", "prompt": "VLSM = variable length subnet masks (different size subnets); CIDR = classless notation like /24 to replace old classful system", "answer": "Subnetting (VLSM, CIDR)", "accept": ["subnetting", "subnetting vlsm cidr", "vlsm cidr"], "sub": "IPv4 addressing"}, {"id": 53, "domain": "Networking Concepts", "kind": "term", "front": "Address classes (A, B, C, D, E)", "back": "A: 1-126 (/8), B: 128-191 (/16), C: 192-223 (/24), D: 224-239 (multicast), E: 240-255 (reserved/experimental)", "prompt": "A: 1-126 (/8), B: 128-191 (/16), C: 192-223 (/24), D: 224-239 (multicast), E: 240-255 (reserved/experimental)", "answer": "Address classes (A, B, C, D, E)", "accept": ["a b c d e", "address classes", "address classes a b c d e"], "sub": "IPv4 addressing"}, {"id": 54, "domain": "Networking Concepts", "kind": "term", "front": "SSH", "back": "Secure Shell — TCP port 22 — encrypted remote CLI access, replaces Telnet", "prompt": "Secure Shell — TCP port 22 — encrypted remote CLI access, replaces Telnet", "answer": "SSH", "accept": ["ssh"], "sub": "Additional ports and protocols"}, {"id": 55, "domain": "Networking Concepts", "kind": "term", "front": "Telnet", "back": "TCP port 23 — unencrypted remote CLI access — never use on production, security risk", "prompt": "TCP port 23 — unencrypted remote CLI access — never use on production, security risk", "answer": "Telnet", "accept": ["telnet"], "sub": "Additional ports and protocols"}, {"id": 56, "domain": "Networking Concepts", "kind": "term", "front": "SMTP", "back": "Simple Mail Transfer Protocol — TCP port 25 — sends email between servers", "prompt": "Simple Mail Transfer Protocol — TCP port 25 — sends email between servers", "answer": "SMTP", "accept": ["smtp"], "sub": "Additional ports and protocols"}, {"id": 57, "domain": "Networking Concepts", "kind": "term", "front": "DNS", "back": "Domain Name System — UDP/TCP port 53 — resolves hostnames to IP addresses", "prompt": "Domain Name System — UDP/TCP port 53 — resolves hostnames to IP addresses", "answer": "DNS", "accept": ["dns"], "sub": "Additional ports and protocols"}, {"id": 58, "domain": "Networking Concepts", "kind": "term", "front": "DHCP", "back": "Dynamic Host Configuration Protocol — UDP ports 67/68 — auto-assigns IP, subnet, gateway, DNS to clients", "prompt": "Dynamic Host Configuration Protocol — UDP ports 67/68 — auto-assigns IP, subnet, gateway, DNS to clients", "answer": "DHCP", "accept": ["dhcp"], "sub": "Additional ports and protocols"}, {"id": 59, "domain": "Networking Concepts", "kind": "term", "front": "HTTP", "back": "Hypertext Transfer Protocol — TCP port 80 — unencrypted web traffic", "prompt": "Hypertext Transfer Protocol — TCP port 80 — unencrypted web traffic", "answer": "HTTP", "accept": ["http"], "sub": "Additional ports and protocols"}, {"id": 60, "domain": "Networking Concepts", "kind": "term", "front": "HTTPS", "back": "HTTP Secure — TCP port 443 — HTTP over TLS/SSL, encrypted web traffic", "prompt": "HTTP Secure — TCP port 443 — HTTP over TLS/SSL, encrypted web traffic", "answer": "HTTPS", "accept": ["https"], "sub": "Additional ports and protocols"}, {"id": 61, "domain": "Networking Concepts", "kind": "term", "front": "SNMP", "back": "Simple Network Management Protocol — UDP port 161 — monitors and manages network devices", "prompt": "Simple Network Management Protocol — UDP port 161 — monitors and manages network devices", "answer": "SNMP", "accept": ["snmp"], "sub": "Additional ports and protocols"}, {"id": 62, "domain": "Networking Concepts", "kind": "term", "front": "LDAP", "back": "Lightweight Directory Access Protocol — TCP port 389 — queries directory services (e.g. Active Directory)", "prompt": "Lightweight Directory Access Protocol — TCP port 389 — queries directory services (e.g. Active Directory)", "answer": "LDAP", "accept": ["ldap"], "sub": "Additional ports and protocols"}, {"id": 63, "domain": "Networking Concepts", "kind": "term", "front": "RDP", "back": "Remote Desktop Protocol — TCP port 3389 — Microsoft GUI remote access", "prompt": "Remote Desktop Protocol — TCP port 3389 — Microsoft GUI remote access", "answer": "RDP", "accept": ["rdp"], "sub": "Additional ports and protocols"}, {"id": 64, "domain": "Networking Concepts", "kind": "term", "front": "SIP", "back": "Session Initiation Protocol — TCP/UDP port 5060/5061 — sets up/tears down VoIP calls", "prompt": "Session Initiation Protocol — TCP/UDP port 5060/5061 — sets up/tears down VoIP calls", "answer": "SIP", "accept": ["sip"], "sub": "Additional ports and protocols"}, {"id": 65, "domain": "Networking Concepts", "kind": "term", "front": "SaaS", "back": "Software as a Service — provider manages everything, you just use the app (e.g. Gmail, Office 365)", "prompt": "Software as a Service — provider manages everything, you just use the app (e.g. Gmail, Office 365)", "answer": "SaaS", "accept": ["saas"], "sub": "Additional cloud service models"}, {"id": 66, "domain": "Networking Concepts", "kind": "term", "front": "IaaS", "back": "Infrastructure as a Service — provider gives you VMs/networking/storage, you manage OS and up (e.g. AWS EC2)", "prompt": "Infrastructure as a Service — provider gives you VMs/networking/storage, you manage OS and up (e.g. AWS EC2)", "answer": "IaaS", "accept": ["iaas"], "sub": "Additional cloud service models"}, {"id": 67, "domain": "Networking Concepts", "kind": "term", "front": "PaaS", "back": "Platform as a Service — provider manages OS/runtime, you manage your app and data (e.g. Heroku, Azure App Service)", "prompt": "Platform as a Service — provider manages OS/runtime, you manage your app and data (e.g. Heroku, Azure App Service)", "answer": "PaaS", "accept": ["paas"], "sub": "Additional cloud service models"}, {"id": 68, "domain": "Network Implementation", "kind": "term", "front": "Static routing", "back": "manually configured routes — no overhead, no auto-updates; used for small/simple networks or default routes", "prompt": "manually configured routes — no overhead, no auto-updates; used for small/simple networks or default routes", "answer": "Static routing", "accept": ["static routing"], "sub": "Routing technologies"}, {"id": 69, "domain": "Network Implementation", "kind": "term", "front": "Dynamic routing", "back": "routers exchange routes automatically via protocols (OSPF, BGP, EIGRP) — adapts to topology changes", "prompt": "routers exchange routes automatically via protocols (OSPF, BGP, EIGRP) — adapts to topology changes", "answer": "Dynamic routing", "accept": ["dynamic routing"], "sub": "Routing technologies"}, {"id": 70, "domain": "Network Implementation", "kind": "term", "front": "BGP", "back": "Border Gateway Protocol — path-vector, TCP port 179 — the routing protocol of the internet (between ASes)", "prompt": "Border Gateway Protocol — path-vector, TCP port 179 — the routing protocol of the internet (between ASes)", "answer": "BGP", "accept": ["bgp"], "sub": "Routing technologies"}, {"id": 71, "domain": "Network Implementation", "kind": "term", "front": "EIGRP", "back": "Enhanced Interior Gateway Routing Protocol — Cisco proprietary, hybrid distance-vector, fast convergence", "prompt": "Enhanced Interior Gateway Routing Protocol — Cisco proprietary, hybrid distance-vector, fast convergence", "answer": "EIGRP", "accept": ["eigrp"], "sub": "Routing technologies"}, {"id": 72, "domain": "Network Implementation", "kind": "term", "front": "OSPF", "back": "Open Shortest Path First — link-state IGP — uses Dijkstra algorithm, organized into areas, open standard", "prompt": "Open Shortest Path First — link-state IGP — uses Dijkstra algorithm, organized into areas, open standard", "answer": "OSPF", "accept": ["ospf"], "sub": "Routing technologies"}, {"id": 73, "domain": "Network Implementation", "kind": "term", "front": "NAT", "back": "Network Address Translation — maps private IPs to public IP for outbound internet (hides internal network)", "prompt": "Network Address Translation — maps private IPs to public IP for outbound internet (hides internal network)", "answer": "NAT", "accept": ["nat"], "sub": "Routing technologies"}, {"id": 74, "domain": "Network Implementation", "kind": "term", "front": "PAT", "back": "Port Address Translation — NAT overload; maps many private IPs to one public IP using different ports", "prompt": "Port Address Translation — NAT overload; maps many private IPs to one public IP using different ports", "answer": "PAT", "accept": ["pat"], "sub": "Routing technologies"}, {"id": 75, "domain": "Network Implementation", "kind": "term", "front": "FHRP", "back": "First Hop Redundancy Protocol — provides default gateway redundancy (HSRP, VRRP, GLBP)", "prompt": "First Hop Redundancy Protocol — provides default gateway redundancy (HSRP, VRRP, GLBP)", "answer": "FHRP", "accept": ["fhrp"], "sub": "Routing technologies"}, {"id": 76, "domain": "Network Implementation", "kind": "term", "front": "VIP", "back": "Virtual IP — shared IP address used by FHRP or load balancers; not tied to a single physical device", "prompt": "Virtual IP — shared IP address used by FHRP or load balancers; not tied to a single physical device", "answer": "VIP", "accept": ["vip"], "sub": "Routing technologies"}, {"id": 77, "domain": "Network Implementation", "kind": "term", "front": "Subinterfaces", "back": "logical subdivision of a physical interface — used for router-on-a-stick VLAN routing (e.g. Gi0/0.10)", "prompt": "logical subdivision of a physical interface — used for router-on-a-stick VLAN routing (e.g. Gi0/0.10)", "answer": "Subinterfaces", "accept": ["subinterfaces"], "sub": "Routing technologies"}, {"id": 78, "domain": "Network Implementation", "kind": "term", "front": "VLANs", "back": "Virtual LAN — logically segments a switch into separate broadcast domains without needing separate hardware", "prompt": "Virtual LAN — logically segments a switch into separate broadcast domains without needing separate hardware", "answer": "VLANs", "accept": ["vlans"], "sub": "Switching technologies"}, {"id": 79, "domain": "Network Implementation", "kind": "term", "front": "Interface configuration", "back": "port settings on a switch: speed, duplex, access vs trunk mode, VLAN assignment", "prompt": "port settings on a switch: speed, duplex, access vs trunk mode, VLAN assignment", "answer": "Interface configuration", "accept": ["interface configuration"], "sub": "Switching technologies"}, {"id": 80, "domain": "Network Implementation", "kind": "term", "front": "Spanning tree", "back": "Spanning Tree Protocol — prevents Layer 2 loops by blocking redundant paths (STP, RSTP, MSTP)", "prompt": "Spanning Tree Protocol — prevents Layer 2 loops by blocking redundant paths (STP, RSTP, MSTP)", "answer": "Spanning tree", "accept": ["spanning tree"], "sub": "Switching technologies"}, {"id": 81, "domain": "Network Implementation", "kind": "term", "front": "MTU", "back": "Maximum Transmission Unit — largest packet size allowed on a link; standard Ethernet = 1500 bytes", "prompt": "Maximum Transmission Unit — largest packet size allowed on a link; standard Ethernet = 1500 bytes", "answer": "MTU", "accept": ["mtu"], "sub": "Switching technologies"}, {"id": 82, "domain": "Network Implementation", "kind": "term", "front": "Jumbo frames", "back": "frames larger than 1500 bytes MTU (up to 9000 bytes) — reduces overhead in datacenter/storage traffic", "prompt": "frames larger than 1500 bytes MTU (up to 9000 bytes) — reduces overhead in datacenter/storage traffic", "answer": "Jumbo frames", "accept": ["jumbo frames"], "sub": "Switching technologies"}, {"id": 83, "domain": "Network Implementation", "kind": "term", "front": "Channels", "back": "frequency subdivisions — 2.4GHz has 11 channels (only 1/6/11 non-overlapping), 5GHz has many non-overlapping channels", "prompt": "frequency subdivisions — 2.4GHz has 11 channels (only 1/6/11 non-overlapping), 5GHz has many non-overlapping channels", "answer": "Channels", "accept": ["channels"], "sub": "Wireless"}, {"id": 84, "domain": "Network Implementation", "kind": "term", "front": "Frequency options", "back": "2.4GHz = longer range, slower, more congested; 5GHz = shorter range, faster, less interference; 6GHz = Wi-Fi 6E", "prompt": "2.4GHz = longer range, slower, more congested; 5GHz = shorter range, faster, less interference; 6GHz = Wi-Fi 6E", "answer": "Frequency options", "accept": ["frequency options"], "sub": "Wireless"}, {"id": 85, "domain": "Network Implementation", "kind": "term", "front": "SSID", "back": "Service Set Identifier — the name of the wireless network broadcast by the AP", "prompt": "Service Set Identifier — the name of the wireless network broadcast by the AP", "answer": "SSID", "accept": ["ssid"], "sub": "Wireless"}, {"id": 86, "domain": "Network Implementation", "kind": "term", "front": "Encryption", "back": "WEP (broken), WPA, WPA2 (AES/CCMP — current standard), WPA3 (latest, stronger)", "prompt": "WEP (broken), WPA, WPA2 (AES/CCMP — current standard), WPA3 (latest, stronger)", "answer": "Encryption", "accept": ["encryption"], "sub": "Wireless"}, {"id": 87, "domain": "Network Implementation", "kind": "term", "front": "Guest networks", "back": "isolated SSID/VLAN for untrusted devices — prevents guests from accessing internal LAN", "prompt": "isolated SSID/VLAN for untrusted devices — prevents guests from accessing internal LAN", "answer": "Guest networks", "accept": ["guest networks"], "sub": "Wireless"}, {"id": 88, "domain": "Network Implementation", "kind": "term", "front": "Authentication", "back": "Open, PSK (pre-shared key), 802.1X/EAP (enterprise — uses RADIUS for per-user auth)", "prompt": "Open, PSK (pre-shared key), 802.1X/EAP (enterprise — uses RADIUS for per-user auth)", "answer": "Authentication", "accept": ["authentication"], "sub": "Wireless"}, {"id": 89, "domain": "Network Implementation", "kind": "term", "front": "Antennas", "back": "omnidirectional = radiates in all directions; directional (Yagi, parabolic) = focused beam for long range", "prompt": "omnidirectional = radiates in all directions; directional (Yagi, parabolic) = focused beam for long range", "answer": "Antennas", "accept": ["antennas"], "sub": "Wireless"}, {"id": 90, "domain": "Network Implementation", "kind": "term", "front": "Access points", "back": "Access Point — provides wireless connectivity to wired network; can be standalone, controller-based, or cloud-managed", "prompt": "Access Point — provides wireless connectivity to wired network; can be standalone, controller-based, or cloud-managed", "answer": "Access points", "accept": ["access points"], "sub": "Wireless"}, {"id": 91, "domain": "Network Implementation", "kind": "term", "front": "Installation implications", "back": "cable routing, conduit, patch panels, cable management, labeling, distance limits per standard", "prompt": "cable routing, conduit, patch panels, cable management, labeling, distance limits per standard", "answer": "Installation implications", "accept": ["installation implications"], "sub": "Physical installations"}, {"id": 92, "domain": "Network Implementation", "kind": "term", "front": "Power considerations", "back": "UPS for power redundancy, PoE for powering devices over Ethernet (switches must support PoE budget)", "prompt": "UPS for power redundancy, PoE for powering devices over Ethernet (switches must support PoE budget)", "answer": "Power considerations", "accept": ["power considerations"], "sub": "Physical installations"}, {"id": 93, "domain": "Network Implementation", "kind": "term", "front": "Environmental factors", "back": "temperature, humidity, dust, EMI — datacenters use HVAC, raised floors, hot/cold aisle containment", "prompt": "temperature, humidity, dust, EMI — datacenters use HVAC, raised floors, hot/cold aisle containment", "answer": "Environmental factors", "accept": ["environmental factors"], "sub": "Physical installations"}, {"id": 94, "domain": "Network Operations", "kind": "term", "front": "Physical vs. logical diagrams", "back": "physical = actual device locations and cable runs; logical = IP addressing, VLANs, routing paths", "prompt": "physical = actual device locations and cable runs; logical = IP addressing, VLANs, routing paths", "answer": "Physical vs. logical diagrams", "accept": ["physical vs logical diagrams"], "sub": "Documentation"}, {"id": 95, "domain": "Network Operations", "kind": "term", "front": "Rack diagrams", "back": "diagram of equipment mounted in a rack — shows U positions, power draw, cable management", "prompt": "diagram of equipment mounted in a rack — shows U positions, power draw, cable management", "answer": "Rack diagrams", "accept": ["rack diagrams"], "sub": "Documentation"}, {"id": 96, "domain": "Network Operations", "kind": "term", "front": "Cable maps", "back": "documents which cable connects which ports — essential for troubleshooting", "prompt": "documents which cable connects which ports — essential for troubleshooting", "answer": "Cable maps", "accept": ["cable maps"], "sub": "Documentation"}, {"id": 97, "domain": "Network Operations", "kind": "term", "front": "Asset inventory", "back": "list of all hardware/software with serial numbers, location, owner, warranty info", "prompt": "list of all hardware/software with serial numbers, location, owner, warranty info", "answer": "Asset inventory", "accept": ["asset inventory"], "sub": "Documentation"}, {"id": 98, "domain": "Network Operations", "kind": "term", "front": "IPAM", "back": "IP Address Management — tracks allocation of IP space, subnets, and assignments", "prompt": "IP Address Management — tracks allocation of IP space, subnets, and assignments", "answer": "IPAM", "accept": ["ipam"], "sub": "Documentation"}, {"id": 99, "domain": "Network Operations", "kind": "term", "front": "SLA", "back": "Service Level Agreement — defines uptime guarantees, response times, and penalties between provider and customer", "prompt": "Service Level Agreement — defines uptime guarantees, response times, and penalties between provider and customer", "answer": "SLA", "accept": ["sla"], "sub": "Documentation"}, {"id": 100, "domain": "Network Operations", "kind": "term", "front": "Wireless surveys", "back": "maps wireless signal coverage, interference, and AP placement in a physical space", "prompt": "maps wireless signal coverage, interference, and AP placement in a physical space", "answer": "Wireless surveys", "accept": ["wireless surveys"], "sub": "Documentation"}, {"id": 101, "domain": "Network Operations", "kind": "term", "front": "EOL (End of Life)", "back": "End of Life — vendor stops selling the product; still supported for a period", "prompt": "End of Life — vendor stops selling the product; still supported for a period", "answer": "EOL (End of Life)", "accept": ["end of life", "eol", "eol end of life"], "sub": "Life-cycle management"}, {"id": 102, "domain": "Network Operations", "kind": "term", "front": "EOS (End of Support)", "back": "End of Support — vendor stops patches and support; security risk to keep running", "prompt": "End of Support — vendor stops patches and support; security risk to keep running", "answer": "EOS (End of Support)", "accept": ["end of support", "eos", "eos end of support"], "sub": "Life-cycle management"}, {"id": 103, "domain": "Network Operations", "kind": "term", "front": "Software management", "back": "patch management, firmware updates, version control, testing before deployment", "prompt": "patch management, firmware updates, version control, testing before deployment", "answer": "Software management", "accept": ["software management"], "sub": "Life-cycle management"}, {"id": 104, "domain": "Network Operations", "kind": "term", "front": "Decommissioning", "back": "secure disposal of hardware — wipe drives, remove from inventory, document", "prompt": "secure disposal of hardware — wipe drives, remove from inventory, document", "answer": "Decommissioning", "accept": ["decommissioning"], "sub": "Life-cycle management"}, {"id": 105, "domain": "Network Operations", "kind": "term", "front": "Request process tracking", "back": "formal process: submit change request → review/approve → implement → verify → document; prevents unplanned outages", "prompt": "formal process: submit change request → review/approve → implement → verify → document; prevents unplanned outages", "answer": "Request process tracking", "accept": ["request process tracking"], "sub": "Change management"}, {"id": 106, "domain": "Network Operations", "kind": "term", "front": "Production configuration", "back": "live running config on a device — what is currently active", "prompt": "live running config on a device — what is currently active", "answer": "Production configuration", "accept": ["production configuration"], "sub": "Configuration management"}, {"id": 107, "domain": "Network Operations", "kind": "term", "front": "Backup configuration", "back": "saved copy of config — used to restore after failure or mistake", "prompt": "saved copy of config — used to restore after failure or mistake", "answer": "Backup configuration", "accept": ["backup configuration"], "sub": "Configuration management"}, {"id": 108, "domain": "Network Operations", "kind": "term", "front": "Baseline configuration", "back": "known-good standard config — used to compare against and detect drift", "prompt": "known-good standard config — used to compare against and detect drift", "answer": "Baseline configuration", "accept": ["baseline configuration"], "sub": "Configuration management"}, {"id": 109, "domain": "Network Operations", "kind": "term", "front": "SNMP", "back": "polls or receives traps from devices — v1/v2c (community string), v3 (encrypted + authenticated)", "prompt": "polls or receives traps from devices — v1/v2c (community string), v3 (encrypted + authenticated)", "answer": "SNMP", "accept": ["snmp"], "sub": "Network monitoring"}, {"id": 110, "domain": "Network Operations", "kind": "term", "front": "Flow data", "back": "NetFlow/sFlow/IPFIX — summarizes traffic flows (src/dst IP, port, bytes) for traffic analysis", "prompt": "NetFlow/sFlow/IPFIX — summarizes traffic flows (src/dst IP, port, bytes) for traffic analysis", "answer": "Flow data", "accept": ["flow data"], "sub": "Network monitoring"}, {"id": 111, "domain": "Network Operations", "kind": "term", "front": "Packet capture", "back": "full packet capture — tools like Wireshark; captures all traffic on a segment for deep analysis", "prompt": "full packet capture — tools like Wireshark; captures all traffic on a segment for deep analysis", "answer": "Packet capture", "accept": ["packet capture"], "sub": "Network monitoring"}, {"id": 112, "domain": "Network Operations", "kind": "term", "front": "Baseline metrics", "back": "normal traffic/performance metrics — used to identify anomalies or degradation", "prompt": "normal traffic/performance metrics — used to identify anomalies or degradation", "answer": "Baseline metrics", "accept": ["baseline metrics"], "sub": "Network monitoring"}, {"id": 113, "domain": "Network Operations", "kind": "term", "front": "Log aggregation", "back": "Syslog, SIEM — centralizes logs from multiple devices for correlation and alerting", "prompt": "Syslog, SIEM — centralizes logs from multiple devices for correlation and alerting", "answer": "Log aggregation", "accept": ["log aggregation"], "sub": "Network monitoring"}, {"id": 114, "domain": "Network Operations", "kind": "term", "front": "API integration", "back": "using REST APIs to pull data from devices/platforms instead of SNMP (modern network management)", "prompt": "using REST APIs to pull data from devices/platforms instead of SNMP (modern network management)", "answer": "API integration", "accept": ["api integration"], "sub": "Network monitoring"}, {"id": 115, "domain": "Network Operations", "kind": "term", "front": "Port mirroring", "back": "SPAN port — copies traffic from one port to another for monitoring without interrupting flow", "prompt": "SPAN port — copies traffic from one port to another for monitoring without interrupting flow", "answer": "Port mirroring", "accept": ["port mirroring"], "sub": "Network monitoring"}, {"id": 116, "domain": "Network Operations", "kind": "term", "front": "RPO (Recovery Point Objective)", "back": "Recovery Point Objective — max acceptable data loss measured in time (e.g. 1hr RPO = backups every hour)", "prompt": "Recovery Point Objective — max acceptable data loss measured in time (e.g. 1hr RPO = backups every hour)", "answer": "RPO (Recovery Point Objective)", "accept": ["recovery point objective", "rpo", "rpo recovery point objective"], "sub": "Disaster recovery"}, {"id": 117, "domain": "Network Operations", "kind": "term", "front": "RTO (Recovery Time Objective)", "back": "Recovery Time Objective — max acceptable downtime before systems must be restored", "prompt": "Recovery Time Objective — max acceptable downtime before systems must be restored", "answer": "RTO (Recovery Time Objective)", "accept": ["recovery time objective", "rto", "rto recovery time objective"], "sub": "Disaster recovery"}, {"id": 118, "domain": "Network Operations", "kind": "term", "front": "MTTR (Mean Time To Repair)", "back": "Mean Time To Repair — average time to fix a failed component", "prompt": "Mean Time To Repair — average time to fix a failed component", "answer": "MTTR (Mean Time To Repair)", "accept": ["mean time to repair", "mttr", "mttr mean time to repair"], "sub": "Disaster recovery"}, {"id": 119, "domain": "Network Operations", "kind": "term", "front": "MTBF (Mean Time Between Failures)", "back": "Mean Time Between Failures — average time a component runs before failing; higher = more reliable", "prompt": "Mean Time Between Failures — average time a component runs before failing; higher = more reliable", "answer": "MTBF (Mean Time Between Failures)", "accept": ["mean time between failures", "mtbf", "mtbf mean time between failures"], "sub": "Disaster recovery"}, {"id": 120, "domain": "Network Operations", "kind": "term", "front": "Cold/warm/hot sites", "back": "cold = empty facility (slowest recovery); warm = partial equipment ready; hot = fully running mirror (fastest recovery)", "prompt": "cold = empty facility (slowest recovery); warm = partial equipment ready; hot = fully running mirror (fastest recovery)", "answer": "Cold/warm/hot sites", "accept": ["cold", "cold warm hot sites", "hot sites", "warm"], "sub": "Disaster recovery"}, {"id": 121, "domain": "Network Operations", "kind": "term", "front": "Active-active/passive", "back": "active-active = both sites handle traffic simultaneously; active-passive = standby takes over only on failure", "prompt": "active-active = both sites handle traffic simultaneously; active-passive = standby takes over only on failure", "answer": "Active-active/passive", "accept": ["active active", "active active passive", "passive"], "sub": "Disaster recovery"}, {"id": 122, "domain": "Network Operations", "kind": "term", "front": "DHCP", "back": "Dynamic Host Configuration Protocol — auto-assigns IP/mask/gateway/DNS to clients (DORA process)", "prompt": "Dynamic Host Configuration Protocol — auto-assigns IP/mask/gateway/DNS to clients (DORA process)", "answer": "DHCP", "accept": ["dhcp"], "sub": "Network services"}, {"id": 123, "domain": "Network Operations", "kind": "term", "front": "SLAAC", "back": "Stateless Address Autoconfiguration — IPv6 feature; devices configure their own IP from router prefix without DHCP", "prompt": "Stateless Address Autoconfiguration — IPv6 feature; devices configure their own IP from router prefix without DHCP", "answer": "SLAAC", "accept": ["slaac"], "sub": "Network services"}, {"id": 124, "domain": "Network Operations", "kind": "term", "front": "DNS", "back": "Domain Name System — resolves FQDNs to IPs; records: A, AAAA, CNAME, MX, PTR, NS, TXT", "prompt": "Domain Name System — resolves FQDNs to IPs; records: A, AAAA, CNAME, MX, PTR, NS, TXT", "answer": "DNS", "accept": ["dns"], "sub": "Network services"}, {"id": 125, "domain": "Network Operations", "kind": "term", "front": "NTP", "back": "Network Time Protocol — UDP port 123 — synchronizes clocks; uses stratum hierarchy (stratum 0 = atomic clock)", "prompt": "Network Time Protocol — UDP port 123 — synchronizes clocks; uses stratum hierarchy (stratum 0 = atomic clock)", "answer": "NTP", "accept": ["ntp"], "sub": "Network services"}, {"id": 126, "domain": "Network Operations", "kind": "term", "front": "PTP", "back": "Precision Time Protocol (IEEE 1588) — sub-microsecond time sync; used in finance, telecom, industrial", "prompt": "Precision Time Protocol (IEEE 1588) — sub-microsecond time sync; used in finance, telecom, industrial", "answer": "PTP", "accept": ["ptp"], "sub": "Network services"}, {"id": 127, "domain": "Network Operations", "kind": "term", "front": "NTS", "back": "Network Time Security — NTP with authenticated/encrypted time sync (modern replacement for plain NTP)", "prompt": "Network Time Security — NTP with authenticated/encrypted time sync (modern replacement for plain NTP)", "answer": "NTS", "accept": ["nts"], "sub": "Network services"}, {"id": 128, "domain": "Network Operations", "kind": "term", "front": "VPNs", "back": "Virtual Private Network — encrypted tunnel over public internet; site-to-site or remote access (SSL/IPSec)", "prompt": "Virtual Private Network — encrypted tunnel over public internet; site-to-site or remote access (SSL/IPSec)", "answer": "VPNs", "accept": ["vpns"], "sub": "Access and management"}, {"id": 129, "domain": "Network Operations", "kind": "term", "front": "SSH", "back": "Secure Shell — TCP 22 — encrypted CLI management of network devices, replaces Telnet", "prompt": "Secure Shell — TCP 22 — encrypted CLI management of network devices, replaces Telnet", "answer": "SSH", "accept": ["ssh"], "sub": "Access and management"}, {"id": 130, "domain": "Network Operations", "kind": "term", "front": "GUI", "back": "Graphical UI for managing devices — web-based (HTTPS), easier but less powerful than CLI", "prompt": "Graphical UI for managing devices — web-based (HTTPS), easier but less powerful than CLI", "answer": "GUI", "accept": ["gui"], "sub": "Access and management"}, {"id": 131, "domain": "Network Operations", "kind": "term", "front": "API", "back": "REST/NETCONF/RESTCONF — programmatic device management for automation", "prompt": "REST/NETCONF/RESTCONF — programmatic device management for automation", "answer": "API", "accept": ["api"], "sub": "Access and management"}, {"id": 132, "domain": "Network Operations", "kind": "term", "front": "Console", "back": "out-of-band access via physical serial/console port — used when network access is unavailable", "prompt": "out-of-band access via physical serial/console port — used when network access is unavailable", "answer": "Console", "accept": ["console"], "sub": "Access and management"}, {"id": 133, "domain": "Network Security", "kind": "term", "front": "Encryption (data in transit/rest)", "back": "in transit = TLS/IPSec protects data moving over network; at rest = encrypted storage (AES)", "prompt": "in transit = TLS/IPSec protects data moving over network; at rest = encrypted storage (AES)", "answer": "Encryption (data in transit/rest)", "accept": ["data in transit", "data in transit rest", "encryption", "encryption data in transit", "encryption data in transit rest", "rest"], "sub": "Logical security"}, {"id": 134, "domain": "Network Security", "kind": "term", "front": "PKI", "back": "Public Key Infrastructure — manages digital certificates and CA hierarchy for encryption/identity", "prompt": "Public Key Infrastructure — manages digital certificates and CA hierarchy for encryption/identity", "answer": "PKI", "accept": ["pki"], "sub": "Logical security"}, {"id": 135, "domain": "Network Security", "kind": "term", "front": "IAM", "back": "Identity and Access Management — controls who can access what resources (users, roles, policies)", "prompt": "Identity and Access Management — controls who can access what resources (users, roles, policies)", "answer": "IAM", "accept": ["iam"], "sub": "Logical security"}, {"id": 136, "domain": "Network Security", "kind": "term", "front": "MFA", "back": "Multi-Factor Authentication — requires 2+ of: something you know, have, or are", "prompt": "Multi-Factor Authentication — requires 2+ of: something you know, have, or are", "answer": "MFA", "accept": ["mfa"], "sub": "Logical security"}, {"id": 137, "domain": "Network Security", "kind": "term", "front": "SSO", "back": "Single Sign-On — authenticate once, access multiple systems (uses SAML, OAuth, OIDC)", "prompt": "Single Sign-On — authenticate once, access multiple systems (uses SAML, OAuth, OIDC)", "answer": "SSO", "accept": ["sso"], "sub": "Logical security"}, {"id": 138, "domain": "Network Security", "kind": "term", "front": "RADIUS", "back": "Remote Authentication Dial-In User Service — UDP 1812/1813 — centralized AAA for network access (802.1X)", "prompt": "Remote Authentication Dial-In User Service — UDP 1812/1813 — centralized AAA for network access (802.1X)", "answer": "RADIUS", "accept": ["radius"], "sub": "Logical security"}, {"id": 139, "domain": "Network Security", "kind": "term", "front": "LDAP", "back": "Lightweight Directory Access Protocol — queries user/device directory (Active Directory uses LDAP)", "prompt": "Lightweight Directory Access Protocol — queries user/device directory (Active Directory uses LDAP)", "answer": "LDAP", "accept": ["ldap"], "sub": "Logical security"}, {"id": 140, "domain": "Network Security", "kind": "term", "front": "SAML", "back": "Security Assertion Markup Language — XML-based SSO standard; passes auth between identity provider and service", "prompt": "Security Assertion Markup Language — XML-based SSO standard; passes auth between identity provider and service", "answer": "SAML", "accept": ["saml"], "sub": "Logical security"}, {"id": 141, "domain": "Network Security", "kind": "term", "front": "TACACS+", "back": "TACACS+ — TCP 49 — Cisco AAA protocol; separates Authentication, Authorization, Accounting (more granular than RADIUS)", "prompt": "TACACS+ — TCP 49 — Cisco AAA protocol; separates Authentication, Authorization, Accounting (more granular than RADIUS)", "answer": "TACACS+", "accept": ["tacacs"], "sub": "Logical security"}, {"id": 142, "domain": "Network Security", "kind": "term", "front": "Time-based authentication", "back": "TOTP/HOTP — time-based one-time passwords (like Google Authenticator); valid for ~30 seconds", "prompt": "TOTP/HOTP — time-based one-time passwords (like Google Authenticator); valid for ~30 seconds", "answer": "Time-based authentication", "accept": ["time based authentication"], "sub": "Logical security"}, {"id": 143, "domain": "Network Security", "kind": "term", "front": "Least privilege", "back": "users/systems get only minimum permissions needed — limits blast radius of a compromise", "prompt": "users/systems get only minimum permissions needed — limits blast radius of a compromise", "answer": "Least privilege", "accept": ["least privilege"], "sub": "Logical security"}, {"id": 144, "domain": "Network Security", "kind": "term", "front": "Role-based access control", "back": "Role-Based Access Control — permissions assigned to roles, users assigned to roles (not direct assignment)", "prompt": "Role-Based Access Control — permissions assigned to roles, users assigned to roles (not direct assignment)", "answer": "Role-based access control", "accept": ["role based access control"], "sub": "Logical security"}, {"id": 145, "domain": "Network Security", "kind": "term", "front": "Geofencing", "back": "restricts access based on physical location using GPS/IP — can block logins outside a defined area", "prompt": "restricts access based on physical location using GPS/IP — can block logins outside a defined area", "answer": "Geofencing", "accept": ["geofencing"], "sub": "Logical security"}, {"id": 146, "domain": "Network Security", "kind": "term", "front": "Cameras", "back": "CCTV/IP cameras — deters and records physical access; part of layered security", "prompt": "CCTV/IP cameras — deters and records physical access; part of layered security", "answer": "Cameras", "accept": ["cameras"], "sub": "Physical security"}, {"id": 147, "domain": "Network Security", "kind": "term", "front": "Locks", "back": "physical locks on server rooms, racks, and cable closets — first line of physical defense", "prompt": "physical locks on server rooms, racks, and cable closets — first line of physical defense", "answer": "Locks", "accept": ["locks"], "sub": "Physical security"}, {"id": 148, "domain": "Network Security", "kind": "term", "front": "Honeypot", "back": "fake system designed to attract and detect attackers — gathers intel on attack techniques", "prompt": "fake system designed to attract and detect attackers — gathers intel on attack techniques", "answer": "Honeypot", "accept": ["honeypot"], "sub": "Deception technologies"}, {"id": 149, "domain": "Network Security", "kind": "term", "front": "Honeynet", "back": "network of honeypots — simulates an entire environment to study attacker behavior", "prompt": "network of honeypots — simulates an entire environment to study attacker behavior", "answer": "Honeynet", "accept": ["honeynet"], "sub": "Deception technologies"}, {"id": 150, "domain": "Network Security", "kind": "term", "front": "Risk", "back": "likelihood × impact — probability that a threat will exploit a vulnerability and cause harm", "prompt": "likelihood × impact — probability that a threat will exploit a vulnerability and cause harm", "answer": "Risk", "accept": ["risk"], "sub": "Security terminology"}, {"id": 151, "domain": "Network Security", "kind": "term", "front": "Vulnerability", "back": "weakness in a system that can be exploited (unpatched software, misconfiguration)", "prompt": "weakness in a system that can be exploited (unpatched software, misconfiguration)", "answer": "Vulnerability", "accept": ["vulnerability"], "sub": "Security terminology"}, {"id": 152, "domain": "Network Security", "kind": "term", "front": "Exploit", "back": "code or technique that takes advantage of a vulnerability to cause unintended behavior", "prompt": "code or technique that takes advantage of a vulnerability to cause unintended behavior", "answer": "Exploit", "accept": ["exploit"], "sub": "Security terminology"}, {"id": 153, "domain": "Network Security", "kind": "term", "front": "Threat", "back": "potential cause of harm — could be a person, event, or circumstance", "prompt": "potential cause of harm — could be a person, event, or circumstance", "answer": "Threat", "accept": ["threat"], "sub": "Security terminology"}, {"id": 154, "domain": "Network Security", "kind": "term", "front": "CIA Triad", "back": "Confidentiality (only authorized access), Integrity (data not tampered), Availability (systems accessible when needed)", "prompt": "Confidentiality (only authorized access), Integrity (data not tampered), Availability (systems accessible when needed)", "answer": "CIA Triad", "accept": ["cia triad"], "sub": "Security terminology"}, {"id": 155, "domain": "Network Security", "kind": "term", "front": "Data locality", "back": "laws requiring data to be stored/processed within specific geographic borders", "prompt": "laws requiring data to be stored/processed within specific geographic borders", "answer": "Data locality", "accept": ["data locality"], "sub": "Audits and compliance"}, {"id": 156, "domain": "Network Security", "kind": "term", "front": "PCI DSS", "back": "Payment Card Industry Data Security Standard — required for orgs handling credit card data", "prompt": "Payment Card Industry Data Security Standard — required for orgs handling credit card data", "answer": "PCI DSS", "accept": ["pci dss"], "sub": "Audits and compliance"}, {"id": 157, "domain": "Network Security", "kind": "term", "front": "GDPR", "back": "General Data Protection Regulation — EU law governing personal data collection, processing, and rights", "prompt": "General Data Protection Regulation — EU law governing personal data collection, processing, and rights", "answer": "GDPR", "accept": ["gdpr"], "sub": "Audits and compliance"}, {"id": 158, "domain": "Network Security", "kind": "term", "front": "IoT", "back": "Internet of Things — consumer devices (cameras, thermostats); isolate on separate VLAN due to weak security", "prompt": "Internet of Things — consumer devices (cameras, thermostats); isolate on separate VLAN due to weak security", "answer": "IoT", "accept": ["iot"], "sub": "Network segmentation"}, {"id": 159, "domain": "Network Security", "kind": "term", "front": "IIoT", "back": "Industrial IoT — factory/industrial sensors and controllers; high security/availability requirements", "prompt": "Industrial IoT — factory/industrial sensors and controllers; high security/availability requirements", "answer": "IIoT", "accept": ["iiot"], "sub": "Network segmentation"}, {"id": 160, "domain": "Network Security", "kind": "term", "front": "SCADA", "back": "Supervisory Control and Data Acquisition — monitors/controls industrial systems (power, water); air-gap when possible", "prompt": "Supervisory Control and Data Acquisition — monitors/controls industrial systems (power, water); air-gap when possible", "answer": "SCADA", "accept": ["scada"], "sub": "Network segmentation"}, {"id": 161, "domain": "Network Security", "kind": "term", "front": "ICS", "back": "Industrial Control Systems — broad term for systems controlling physical processes (includes SCADA, PLC, DCS)", "prompt": "Industrial Control Systems — broad term for systems controlling physical processes (includes SCADA, PLC, DCS)", "answer": "ICS", "accept": ["ics"], "sub": "Network segmentation"}, {"id": 162, "domain": "Network Security", "kind": "term", "front": "OT", "back": "Operational Technology — hardware/software that controls physical devices; traditionally isolated from IT", "prompt": "Operational Technology — hardware/software that controls physical devices; traditionally isolated from IT", "answer": "OT", "accept": ["ot"], "sub": "Network segmentation"}, {"id": 163, "domain": "Network Security", "kind": "term", "front": "Guest", "back": "isolated network segment for visitors — internet access only, no access to internal LAN", "prompt": "isolated network segment for visitors — internet access only, no access to internal LAN", "answer": "Guest", "accept": ["guest"], "sub": "Network segmentation"}, {"id": 164, "domain": "Network Security", "kind": "term", "front": "BYOD", "back": "Bring Your Own Device — personal devices on corporate network; requires MDM/NAC to enforce policy", "prompt": "Bring Your Own Device — personal devices on corporate network; requires MDM/NAC to enforce policy", "answer": "BYOD", "accept": ["byod"], "sub": "Network segmentation"}, {"id": 165, "domain": "Network Security", "kind": "term", "front": "DoS/DDoS", "back": "Denial of Service / Distributed DoS — floods target with traffic to exhaust resources and take it offline", "prompt": "Denial of Service / Distributed DoS — floods target with traffic to exhaust resources and take it offline", "answer": "DoS/DDoS", "accept": ["ddos", "dos", "dos ddos"], "sub": "Types of attacks"}, {"id": 166, "domain": "Network Security", "kind": "term", "front": "VLAN hopping", "back": "attacker sends 802.1Q tagged frames to jump between VLANs — prevented by disabling DTP and using dedicated native VLAN", "prompt": "attacker sends 802.1Q tagged frames to jump between VLANs — prevented by disabling DTP and using dedicated native VLAN", "answer": "VLAN hopping", "accept": ["vlan hopping"], "sub": "Types of attacks"}, {"id": 167, "domain": "Network Security", "kind": "term", "front": "MAC flooding", "back": "floods a switch CAM table with fake MACs — switch fails open and broadcasts all traffic (like a hub)", "prompt": "floods a switch CAM table with fake MACs — switch fails open and broadcasts all traffic (like a hub)", "answer": "MAC flooding", "accept": ["mac flooding"], "sub": "Types of attacks"}, {"id": 168, "domain": "Network Security", "kind": "term", "front": "ARP poisoning/spoofing", "back": "attacker sends fake ARP replies linking their MAC to another IP — enables MitM attacks", "prompt": "attacker sends fake ARP replies linking their MAC to another IP — enables MitM attacks", "answer": "ARP poisoning/spoofing", "accept": ["arp poisoning", "arp poisoning spoofing", "spoofing"], "sub": "Types of attacks"}, {"id": 169, "domain": "Network Security", "kind": "term", "front": "DNS poisoning/spoofing", "back": "attacker corrupts DNS cache with false records — redirects users to malicious sites", "prompt": "attacker corrupts DNS cache with false records — redirects users to malicious sites", "answer": "DNS poisoning/spoofing", "accept": ["dns poisoning", "dns poisoning spoofing", "spoofing"], "sub": "Types of attacks"}, {"id": 170, "domain": "Network Security", "kind": "term", "front": "Rogue devices/services", "back": "unauthorized device/service on network (rogue DHCP, rogue AP) — can intercept or disrupt traffic", "prompt": "unauthorized device/service on network (rogue DHCP, rogue AP) — can intercept or disrupt traffic", "answer": "Rogue devices/services", "accept": ["rogue devices", "rogue devices services", "services"], "sub": "Types of attacks"}, {"id": 171, "domain": "Network Security", "kind": "term", "front": "Evil twin", "back": "attacker sets up fake AP with same SSID — clients connect thinking it is legit, traffic intercepted", "prompt": "attacker sets up fake AP with same SSID — clients connect thinking it is legit, traffic intercepted", "answer": "Evil twin", "accept": ["evil twin"], "sub": "Types of attacks"}, {"id": 172, "domain": "Network Security", "kind": "term", "front": "On-path attack", "back": "formerly MitM — attacker positions between two parties, intercepts and potentially alters traffic", "prompt": "formerly MitM — attacker positions between two parties, intercepts and potentially alters traffic", "answer": "On-path attack", "accept": ["on path attack"], "sub": "Types of attacks"}, {"id": 173, "domain": "Network Security", "kind": "term", "front": "Phishing", "back": "social engineering via email/SMS — tricks users into revealing credentials or installing malware", "prompt": "social engineering via email/SMS — tricks users into revealing credentials or installing malware", "answer": "Phishing", "accept": ["phishing"], "sub": "Types of attacks"}, {"id": 174, "domain": "Network Security", "kind": "term", "front": "Dumpster diving", "back": "physically searching discarded materials for sensitive info (passwords, network diagrams)", "prompt": "physically searching discarded materials for sensitive info (passwords, network diagrams)", "answer": "Dumpster diving", "accept": ["dumpster diving"], "sub": "Types of attacks"}, {"id": 175, "domain": "Network Security", "kind": "term", "front": "Shoulder surfing", "back": "physically observing someone entering credentials or sensitive info", "prompt": "physically observing someone entering credentials or sensitive info", "answer": "Shoulder surfing", "accept": ["shoulder surfing"], "sub": "Types of attacks"}, {"id": 176, "domain": "Network Security", "kind": "term", "front": "Tailgating", "back": "following an authorized person through a secured door without using own credentials", "prompt": "following an authorized person through a secured door without using own credentials", "answer": "Tailgating", "accept": ["tailgating"], "sub": "Types of attacks"}, {"id": 177, "domain": "Network Security", "kind": "term", "front": "Device hardening", "back": "reduce attack surface: disable unused ports/services, change defaults, patch, enable logging", "prompt": "reduce attack surface: disable unused ports/services, change defaults, patch, enable logging", "answer": "Device hardening", "accept": ["device hardening"], "sub": "Security features and defense"}, {"id": 178, "domain": "Network Security", "kind": "term", "front": "NAC", "back": "Network Access Control — enforces policy before granting network access (check OS patch level, AV status)", "prompt": "Network Access Control — enforces policy before granting network access (check OS patch level, AV status)", "answer": "NAC", "accept": ["nac"], "sub": "Security features and defense"}, {"id": 179, "domain": "Network Security", "kind": "term", "front": "Key management", "back": "generating, distributing, storing, rotating, and revoking cryptographic keys securely", "prompt": "generating, distributing, storing, rotating, and revoking cryptographic keys securely", "answer": "Key management", "accept": ["key management"], "sub": "Security features and defense"}, {"id": 180, "domain": "Network Security", "kind": "term", "front": "ACL", "back": "Access Control List — ordered list of permit/deny rules applied to interfaces or resources", "prompt": "Access Control List — ordered list of permit/deny rules applied to interfaces or resources", "answer": "ACL", "accept": ["acl"], "sub": "Security features and defense"}, {"id": 181, "domain": "Network Security", "kind": "term", "front": "URL/content filtering", "back": "blocks access to categories of websites or specific URLs — enforced at proxy/firewall/DNS", "prompt": "blocks access to categories of websites or specific URLs — enforced at proxy/firewall/DNS", "answer": "URL/content filtering", "accept": ["content filtering", "url", "url content filtering"], "sub": "Security features and defense"}, {"id": 182, "domain": "Network Security", "kind": "term", "front": "Trusted vs. untrusted zones", "back": "trusted = internal LAN; untrusted = internet; DMZ = semi-trusted public-facing servers", "prompt": "trusted = internal LAN; untrusted = internet; DMZ = semi-trusted public-facing servers", "answer": "Trusted vs. untrusted zones", "accept": ["trusted vs untrusted zones"], "sub": "Security features and defense"}, {"id": 183, "domain": "Network Security", "kind": "term", "front": "Screened subnet", "back": "DMZ — subnet between two firewalls; hosts public-facing servers isolated from internal LAN", "prompt": "DMZ — subnet between two firewalls; hosts public-facing servers isolated from internal LAN", "answer": "Screened subnet", "accept": ["screened subnet"], "sub": "Security features and defense"}, {"id": 184, "domain": "Network Troubleshooting", "kind": "term", "front": "Identify the problem", "back": "gather info: what changed, who is affected, error messages, reproduce the problem", "prompt": "gather info: what changed, who is affected, error messages, reproduce the problem", "answer": "Identify the problem", "accept": ["identify the problem"], "sub": "Troubleshooting methodology"}, {"id": 185, "domain": "Network Troubleshooting", "kind": "term", "front": "Establish a theory", "back": "form hypothesis based on OSI model or most likely cause; start simple", "prompt": "form hypothesis based on OSI model or most likely cause; start simple", "answer": "Establish a theory", "accept": ["establish a theory"], "sub": "Troubleshooting methodology"}, {"id": 186, "domain": "Network Troubleshooting", "kind": "term", "front": "Test the theory", "back": "confirm or deny theory — if confirmed, determine fix; if denied, form new theory", "prompt": "confirm or deny theory — if confirmed, determine fix; if denied, form new theory", "answer": "Test the theory", "accept": ["test the theory"], "sub": "Troubleshooting methodology"}, {"id": 187, "domain": "Network Troubleshooting", "kind": "term", "front": "Plan and implement a solution", "back": "document steps before making changes; consider rollback plan; implement during change window", "prompt": "document steps before making changes; consider rollback plan; implement during change window", "answer": "Plan and implement a solution", "accept": ["plan and implement a solution"], "sub": "Troubleshooting methodology"}, {"id": 188, "domain": "Network Troubleshooting", "kind": "term", "front": "Verify functionality", "back": "confirm issue is resolved for all affected users; check for side effects", "prompt": "confirm issue is resolved for all affected users; check for side effects", "answer": "Verify functionality", "accept": ["verify functionality"], "sub": "Troubleshooting methodology"}, {"id": 189, "domain": "Network Troubleshooting", "kind": "term", "front": "Document findings", "back": "record the problem, root cause, and solution — builds knowledge base for future issues", "prompt": "record the problem, root cause, and solution — builds knowledge base for future issues", "answer": "Document findings", "accept": ["document findings"], "sub": "Troubleshooting methodology"}, {"id": 190, "domain": "Network Troubleshooting", "kind": "term", "front": "Incorrect cable type", "back": "wrong cable standard (e.g. straight-through vs crossover, wrong Cat rating) causes link failure or degraded speeds", "prompt": "wrong cable standard (e.g. straight-through vs crossover, wrong Cat rating) causes link failure or degraded speeds", "answer": "Incorrect cable type", "accept": ["incorrect cable type"], "sub": "Cabling and physical interface issues"}, {"id": 191, "domain": "Network Troubleshooting", "kind": "term", "front": "Signal degradation", "back": "signal loss over distance or due to damage — attenuation in copper, bending radius issues in fiber", "prompt": "signal loss over distance or due to damage — attenuation in copper, bending radius issues in fiber", "answer": "Signal degradation", "accept": ["signal degradation"], "sub": "Cabling and physical interface issues"}, {"id": 192, "domain": "Network Troubleshooting", "kind": "term", "front": "Improper termination", "back": "poorly crimped RJ45 or fiber splice — causes intermittent connectivity or high error rates", "prompt": "poorly crimped RJ45 or fiber splice — causes intermittent connectivity or high error rates", "answer": "Improper termination", "accept": ["improper termination"], "sub": "Cabling and physical interface issues"}, {"id": 193, "domain": "Network Troubleshooting", "kind": "term", "front": "TX/RX transposed", "back": "transmit and receive wires swapped — modern NICs auto-MDIX can correct, older cannot", "prompt": "transmit and receive wires swapped — modern NICs auto-MDIX can correct, older cannot", "answer": "TX/RX transposed", "accept": ["rx transposed", "tx", "tx rx transposed"], "sub": "Cabling and physical interface issues"}, {"id": 194, "domain": "Network Troubleshooting", "kind": "term", "front": "Increasing counters", "back": "rising CRC/error/collision counters on interface — indicates physical layer problem", "prompt": "rising CRC/error/collision counters on interface — indicates physical layer problem", "answer": "Increasing counters", "accept": ["increasing counters"], "sub": "Cabling and physical interface issues"}, {"id": 195, "domain": "Network Troubleshooting", "kind": "term", "front": "Port status", "back": "up/up = connected and active; up/down = connected but no signal; down/down = shut or no cable", "prompt": "up/up = connected and active; up/down = connected but no signal; down/down = shut or no cable", "answer": "Port status", "accept": ["port status"], "sub": "Cabling and physical interface issues"}, {"id": 196, "domain": "Network Troubleshooting", "kind": "term", "front": "PoE", "back": "Power over Ethernet — IEEE 802.3af/at/bt; powers APs, IP phones over Cat cable; check wattage budget", "prompt": "Power over Ethernet — IEEE 802.3af/at/bt; powers APs, IP phones over Cat cable; check wattage budget", "answer": "PoE", "accept": ["poe"], "sub": "Cabling and physical interface issues"}, {"id": 197, "domain": "Network Troubleshooting", "kind": "term", "front": "Transceiver mismatch", "back": "mismatched SFP/QSFP modules (e.g. SMF vs MMF, different speeds) — link will not come up", "prompt": "mismatched SFP/QSFP modules (e.g. SMF vs MMF, different speeds) — link will not come up", "answer": "Transceiver mismatch", "accept": ["transceiver mismatch"], "sub": "Cabling and physical interface issues"}, {"id": 198, "domain": "Network Troubleshooting", "kind": "term", "front": "Signal strength", "back": "wireless: measured in dBm; -50 dBm = excellent, -70 dBm = ok, below -80 dBm = poor/unusable", "prompt": "wireless: measured in dBm; -50 dBm = excellent, -70 dBm = ok, below -80 dBm = poor/unusable", "answer": "Signal strength", "accept": ["signal strength"], "sub": "Cabling and physical interface issues"}, {"id": 199, "domain": "Network Troubleshooting", "kind": "term", "front": "STP issues", "back": "topology change loops, blocking wrong ports — use RSTP/MSTP; check root bridge election", "prompt": "topology change loops, blocking wrong ports — use RSTP/MSTP; check root bridge election", "answer": "STP issues", "accept": ["stp issues"], "sub": "Network services issues"}, {"id": 200, "domain": "Network Troubleshooting", "kind": "term", "front": "VLAN assignment", "back": "device in wrong VLAN or missing VLAN on trunk — check switchport access vlan and trunk allowed list", "prompt": "device in wrong VLAN or missing VLAN on trunk — check switchport access vlan and trunk allowed list", "answer": "VLAN assignment", "accept": ["vlan assignment"], "sub": "Network services issues"}, {"id": 201, "domain": "Network Troubleshooting", "kind": "term", "front": "ACLs", "back": "implicit deny blocking legitimate traffic — check ACL order and direction (in vs out)", "prompt": "implicit deny blocking legitimate traffic — check ACL order and direction (in vs out)", "answer": "ACLs", "accept": ["acls"], "sub": "Network services issues"}, {"id": 202, "domain": "Network Troubleshooting", "kind": "term", "front": "Routing table issues", "back": "missing or incorrect routes — check routing table with show ip route; verify next-hop reachability", "prompt": "missing or incorrect routes — check routing table with show ip route; verify next-hop reachability", "answer": "Routing table issues", "accept": ["routing table issues"], "sub": "Network services issues"}, {"id": 203, "domain": "Network Troubleshooting", "kind": "term", "front": "Default routes", "back": "no default route = packets to unknown destinations dropped — must exist for internet access", "prompt": "no default route = packets to unknown destinations dropped — must exist for internet access", "answer": "Default routes", "accept": ["default routes"], "sub": "Network services issues"}, {"id": 204, "domain": "Network Troubleshooting", "kind": "term", "front": "Address pool exhaustion", "back": "DHCP scope exhausted — clients get APIPA (169.254.x.x); fix by expanding pool or reducing lease time", "prompt": "DHCP scope exhausted — clients get APIPA (169.254.x.x); fix by expanding pool or reducing lease time", "answer": "Address pool exhaustion", "accept": ["address pool exhaustion"], "sub": "Network services issues"}, {"id": 205, "domain": "Network Troubleshooting", "kind": "term", "front": "Incorrect gateway/IP/subnet mask", "back": "wrong default gateway = no routing outside subnet; wrong mask = wrong network range; verify with ipconfig/ip a", "prompt": "wrong default gateway = no routing outside subnet; wrong mask = wrong network range; verify with ipconfig/ip a", "answer": "Incorrect gateway/IP/subnet mask", "accept": ["incorrect gateway", "incorrect gateway ip subnet mask", "ip", "subnet mask"], "sub": "Network services issues"}, {"id": 206, "domain": "Network Troubleshooting", "kind": "term", "front": "Congestion", "back": "too much traffic for available bandwidth — causes queuing delays and drops; fix with QoS or upgrade links", "prompt": "too much traffic for available bandwidth — causes queuing delays and drops; fix with QoS or upgrade links", "answer": "Congestion", "accept": ["congestion"], "sub": "Performance issues"}, {"id": 207, "domain": "Network Troubleshooting", "kind": "term", "front": "Latency", "back": "delay in packet delivery — measured in ms; causes: distance, congestion, processing, jitter in VoIP", "prompt": "delay in packet delivery — measured in ms; causes: distance, congestion, processing, jitter in VoIP", "answer": "Latency", "accept": ["latency"], "sub": "Performance issues"}, {"id": 208, "domain": "Network Troubleshooting", "kind": "term", "front": "Packet loss", "back": "packets dropped in transit — causes: congestion, faulty hardware, wireless interference; detected with ping", "prompt": "packets dropped in transit — causes: congestion, faulty hardware, wireless interference; detected with ping", "answer": "Packet loss", "accept": ["packet loss"], "sub": "Performance issues"}, {"id": 209, "domain": "Network Troubleshooting", "kind": "term", "front": "Wireless interference", "back": "competing signals on same channel (co-channel) or adjacent channel — use Wi-Fi analyzer to find clean channel", "prompt": "competing signals on same channel (co-channel) or adjacent channel — use Wi-Fi analyzer to find clean channel", "answer": "Wireless interference", "accept": ["wireless interference"], "sub": "Performance issues"}, {"id": 210, "domain": "Network Troubleshooting", "kind": "term", "front": "Protocol analyzers", "back": "Wireshark, tcpdump — capture and inspect packets at the frame level for deep troubleshooting", "prompt": "Wireshark, tcpdump — capture and inspect packets at the frame level for deep troubleshooting", "answer": "Protocol analyzers", "accept": ["protocol analyzers"], "sub": "Tools and protocols"}, {"id": 211, "domain": "Network Troubleshooting", "kind": "term", "front": "Command line tools", "back": "ping (reachability), traceroute (path), nslookup/dig (DNS), netstat (connections), ipconfig/ip (addressing)", "prompt": "ping (reachability), traceroute (path), nslookup/dig (DNS), netstat (connections), ipconfig/ip (addressing)", "answer": "Command line tools", "accept": ["command line tools"], "sub": "Tools and protocols"}, {"id": 212, "domain": "Network Troubleshooting", "kind": "term", "front": "Cable testers", "back": "certifier or basic tester — verifies continuity, wire map, and length; TDR locates breaks", "prompt": "certifier or basic tester — verifies continuity, wire map, and length; TDR locates breaks", "answer": "Cable testers", "accept": ["cable testers"], "sub": "Tools and protocols"}, {"id": 213, "domain": "Network Troubleshooting", "kind": "term", "front": "Wi-Fi analyzers", "back": "scans wireless environment for SSIDs, channels, signal strength, and interference sources", "prompt": "scans wireless environment for SSIDs, channels, signal strength, and interference sources", "answer": "Wi-Fi analyzers", "accept": ["wi fi analyzers"], "sub": "Tools and protocols"}, {"id": 214, "domain": "Port Numbers", "kind": "port", "front": "FTP (Data) (TCP)", "back": "Port 20  ·  TCP", "prompt": "FTP (Data)  —  TCP", "answer": "20", "accept": ["20"], "sub": "Ports & Protocols"}, {"id": 215, "domain": "Port Numbers", "kind": "port", "front": "FTP (Control) (TCP)", "back": "Port 21  ·  TCP", "prompt": "FTP (Control)  —  TCP", "answer": "21", "accept": ["21"], "sub": "Ports & Protocols"}, {"id": 216, "domain": "Port Numbers", "kind": "port", "front": "SSH / SFTP / SCP (TCP)", "back": "Port 22  ·  TCP", "prompt": "SSH / SFTP / SCP  —  TCP", "answer": "22", "accept": ["22"], "sub": "Ports & Protocols"}, {"id": 217, "domain": "Port Numbers", "kind": "port", "front": "Telnet (TCP)", "back": "Port 23  ·  TCP", "prompt": "Telnet  —  TCP", "answer": "23", "accept": ["23"], "sub": "Ports & Protocols"}, {"id": 218, "domain": "Port Numbers", "kind": "port", "front": "SMTP (TCP)", "back": "Port 25  ·  TCP", "prompt": "SMTP  —  TCP", "answer": "25", "accept": ["25"], "sub": "Ports & Protocols"}, {"id": 219, "domain": "Port Numbers", "kind": "port", "front": "TACACS+ (TCP)", "back": "Port 49  ·  TCP", "prompt": "TACACS+  —  TCP", "answer": "49", "accept": ["49"], "sub": "Ports & Protocols"}, {"id": 220, "domain": "Port Numbers", "kind": "port", "front": "DNS (TCP/UDP)", "back": "Port 53  ·  TCP/UDP", "prompt": "DNS  —  TCP/UDP", "answer": "53", "accept": ["53"], "sub": "Ports & Protocols"}, {"id": 221, "domain": "Port Numbers", "kind": "port", "front": "DHCP (Server) (UDP)", "back": "Port 67  ·  UDP", "prompt": "DHCP (Server)  —  UDP", "answer": "67", "accept": ["67"], "sub": "Ports & Protocols"}, {"id": 222, "domain": "Port Numbers", "kind": "port", "front": "DHCP (Client) (UDP)", "back": "Port 68  ·  UDP", "prompt": "DHCP (Client)  —  UDP", "answer": "68", "accept": ["68"], "sub": "Ports & Protocols"}, {"id": 223, "domain": "Port Numbers", "kind": "port", "front": "TFTP (UDP)", "back": "Port 69  ·  UDP", "prompt": "TFTP  —  UDP", "answer": "69", "accept": ["69"], "sub": "Ports & Protocols"}, {"id": 224, "domain": "Port Numbers", "kind": "port", "front": "HTTP (TCP)", "back": "Port 80  ·  TCP", "prompt": "HTTP  —  TCP", "answer": "80", "accept": ["80"], "sub": "Ports & Protocols"}, {"id": 225, "domain": "Port Numbers", "kind": "port", "front": "Kerberos (TCP/UDP)", "back": "Port 88  ·  TCP/UDP", "prompt": "Kerberos  —  TCP/UDP", "answer": "88", "accept": ["88"], "sub": "Ports & Protocols"}, {"id": 226, "domain": "Port Numbers", "kind": "port", "front": "POP3 (TCP)", "back": "Port 110  ·  TCP", "prompt": "POP3  —  TCP", "answer": "110", "accept": ["110"], "sub": "Ports & Protocols"}, {"id": 227, "domain": "Port Numbers", "kind": "port", "front": "NTP (UDP)", "back": "Port 123  ·  UDP", "prompt": "NTP  —  UDP", "answer": "123", "accept": ["123"], "sub": "Ports & Protocols"}, {"id": 228, "domain": "Port Numbers", "kind": "port", "front": "NetBIOS Name (UDP)", "back": "Port 137  ·  UDP", "prompt": "NetBIOS Name  —  UDP", "answer": "137", "accept": ["137"], "sub": "Ports & Protocols"}, {"id": 229, "domain": "Port Numbers", "kind": "port", "front": "NetBIOS Datagram (UDP)", "back": "Port 138  ·  UDP", "prompt": "NetBIOS Datagram  —  UDP", "answer": "138", "accept": ["138"], "sub": "Ports & Protocols"}, {"id": 230, "domain": "Port Numbers", "kind": "port", "front": "NetBIOS Session (TCP)", "back": "Port 139  ·  TCP", "prompt": "NetBIOS Session  —  TCP", "answer": "139", "accept": ["139"], "sub": "Ports & Protocols"}, {"id": 231, "domain": "Port Numbers", "kind": "port", "front": "IMAP (TCP)", "back": "Port 143  ·  TCP", "prompt": "IMAP  —  TCP", "answer": "143", "accept": ["143"], "sub": "Ports & Protocols"}, {"id": 232, "domain": "Port Numbers", "kind": "port", "front": "SNMP (UDP)", "back": "Port 161  ·  UDP", "prompt": "SNMP  —  UDP", "answer": "161", "accept": ["161"], "sub": "Ports & Protocols"}, {"id": 233, "domain": "Port Numbers", "kind": "port", "front": "SNMP Trap (UDP)", "back": "Port 162  ·  UDP", "prompt": "SNMP Trap  —  UDP", "answer": "162", "accept": ["162"], "sub": "Ports & Protocols"}, {"id": 234, "domain": "Port Numbers", "kind": "port", "front": "BGP (TCP)", "back": "Port 179  ·  TCP", "prompt": "BGP  —  TCP", "answer": "179", "accept": ["179"], "sub": "Ports & Protocols"}, {"id": 235, "domain": "Port Numbers", "kind": "port", "front": "LDAP (TCP)", "back": "Port 389  ·  TCP", "prompt": "LDAP  —  TCP", "answer": "389", "accept": ["389"], "sub": "Ports & Protocols"}, {"id": 236, "domain": "Port Numbers", "kind": "port", "front": "HTTPS (TCP)", "back": "Port 443  ·  TCP", "prompt": "HTTPS  —  TCP", "answer": "443", "accept": ["443"], "sub": "Ports & Protocols"}, {"id": 237, "domain": "Port Numbers", "kind": "port", "front": "SMB (TCP)", "back": "Port 445  ·  TCP", "prompt": "SMB  —  TCP", "answer": "445", "accept": ["445"], "sub": "Ports & Protocols"}, {"id": 238, "domain": "Port Numbers", "kind": "port", "front": "IKE / ISAKMP (UDP)", "back": "Port 500  ·  UDP", "prompt": "IKE / ISAKMP  —  UDP", "answer": "500", "accept": ["500"], "sub": "Ports & Protocols"}, {"id": 239, "domain": "Port Numbers", "kind": "port", "front": "Syslog (UDP)", "back": "Port 514  ·  UDP", "prompt": "Syslog  —  UDP", "answer": "514", "accept": ["514"], "sub": "Ports & Protocols"}, {"id": 240, "domain": "Port Numbers", "kind": "port", "front": "SMTP (STARTTLS) (TCP)", "back": "Port 587  ·  TCP", "prompt": "SMTP (STARTTLS)  —  TCP", "answer": "587", "accept": ["587"], "sub": "Ports & Protocols"}, {"id": 241, "domain": "Port Numbers", "kind": "port", "front": "LDAPS (TCP)", "back": "Port 636  ·  TCP", "prompt": "LDAPS  —  TCP", "answer": "636", "accept": ["636"], "sub": "Ports & Protocols"}, {"id": 242, "domain": "Port Numbers", "kind": "port", "front": "IMAPS (TCP)", "back": "Port 993  ·  TCP", "prompt": "IMAPS  —  TCP", "answer": "993", "accept": ["993"], "sub": "Ports & Protocols"}, {"id": 243, "domain": "Port Numbers", "kind": "port", "front": "POP3S (TCP)", "back": "Port 995  ·  TCP", "prompt": "POP3S  —  TCP", "answer": "995", "accept": ["995"], "sub": "Ports & Protocols"}, {"id": 244, "domain": "Port Numbers", "kind": "port", "front": "MS SQL Server (TCP)", "back": "Port 1433  ·  TCP", "prompt": "MS SQL Server  —  TCP", "answer": "1433", "accept": ["1433"], "sub": "Ports & Protocols"}, {"id": 245, "domain": "Port Numbers", "kind": "port", "front": "Oracle DB (TCP)", "back": "Port 1521  ·  TCP", "prompt": "Oracle DB  —  TCP", "answer": "1521", "accept": ["1521"], "sub": "Ports & Protocols"}, {"id": 246, "domain": "Port Numbers", "kind": "port", "front": "L2TP (UDP)", "back": "Port 1701  ·  UDP", "prompt": "L2TP  —  UDP", "answer": "1701", "accept": ["1701"], "sub": "Ports & Protocols"}, {"id": 247, "domain": "Port Numbers", "kind": "port", "front": "PPTP (TCP)", "back": "Port 1723  ·  TCP", "prompt": "PPTP  —  TCP", "answer": "1723", "accept": ["1723"], "sub": "Ports & Protocols"}, {"id": 248, "domain": "Port Numbers", "kind": "port", "front": "RADIUS (Auth) (UDP)", "back": "Port 1812  ·  UDP", "prompt": "RADIUS (Auth)  —  UDP", "answer": "1812", "accept": ["1812"], "sub": "Ports & Protocols"}, {"id": 249, "domain": "Port Numbers", "kind": "port", "front": "RADIUS (Acct) (UDP)", "back": "Port 1813  ·  UDP", "prompt": "RADIUS (Acct)  —  UDP", "answer": "1813", "accept": ["1813"], "sub": "Ports & Protocols"}, {"id": 250, "domain": "Port Numbers", "kind": "port", "front": "MySQL (TCP)", "back": "Port 3306  ·  TCP", "prompt": "MySQL  —  TCP", "answer": "3306", "accept": ["3306"], "sub": "Ports & Protocols"}, {"id": 251, "domain": "Port Numbers", "kind": "port", "front": "RDP (TCP)", "back": "Port 3389  ·  TCP", "prompt": "RDP  —  TCP", "answer": "3389", "accept": ["3389"], "sub": "Ports & Protocols"}, {"id": 252, "domain": "Port Numbers", "kind": "port", "front": "IPSec NAT-T (UDP)", "back": "Port 4500  ·  UDP", "prompt": "IPSec NAT-T  —  UDP", "answer": "4500", "accept": ["4500"], "sub": "Ports & Protocols"}, {"id": 253, "domain": "Port Numbers", "kind": "port", "front": "SIP (TCP/UDP)", "back": "Port 5060  ·  TCP/UDP", "prompt": "SIP  —  TCP/UDP", "answer": "5060", "accept": ["5060"], "sub": "Ports & Protocols"}, {"id": 254, "domain": "Port Numbers", "kind": "port", "front": "SIP (TLS) (TCP)", "back": "Port 5061  ·  TCP", "prompt": "SIP (TLS)  —  TCP", "answer": "5061", "accept": ["5061"], "sub": "Ports & Protocols"}];
+const DOMAINS = [{"name": "Networking Concepts", "weight": "23%"}, {"name": "Network Implementation", "weight": "20%"}, {"name": "Network Operations", "weight": "19%"}, {"name": "Network Security", "weight": "14%"}, {"name": "Network Troubleshooting", "weight": "24%"}, {"name": "Port Numbers", "weight": "ref"}];
 
-  const DEFAULTS = {
-    // OSI Model
-    'osi-l1': 'bits in a wire (Hub, Repeater, Network cabling)',
-    'osi-l2': 'physical addressing (MAC addresses(48-bit), Bridge, Switch, NIC(Network adapter), ARP, Frames)',
-    'osi-l3': 'path determination (Routers, IP, ICMP, Packets)',
-    'osi-l4': 'TCP(Segments) = reliable/connection-oriented, UDP(Datagrams) = fast/connectionless & ports',
-    'osi-l5': 'managing connections (opening, closing, and maintaining connections)',
-    'osi-l6': 'data translation (data compression, and data encryption/decryption)',
-    'osi-l7': 'user interface (direct interaction between the end-user and the network & HTTP, FTP, SMTP)',
-    // Networking appliances
-    'app-routers': 'connect networks (multilayer switch)',
-    'app-switches': 'make networks (use MAC addresses)',
-    'app-hubs': 'make networks (no one should be using these today)',
-    'app-firewall': 'controls ingoing and outgoing traffic based on a set of rules (named after literal firewalls in buildings)',
-    'app-idsips': 'Intrusion Detection System (it just monitors) Intrusion Protection System (actually blocks)',
-    'app-lb': 'dynamically distributes incoming network traffic across multiple servers to prevent any single machine from becoming overwhelmed',
-    'app-proxies': 'gateway between your device and the internet',
-    'app-nas': 'Network Attached Storage — file-level storage accessed over a network (SMB/NFS)',
-    'app-san': 'Storage Area Network — block-level storage, high speed, expensive, used by servers',
-    // Cloud concepts
-    'cloud-nfv': 'Network Functions Virtualization (replaces hardware with software)',
-    'cloud-vpc': 'Virtual Private Cloud (private network hosted within a public cloud provider\'s infrastructure)',
-    'cloud-nsg': 'Network Security Group — virtual firewall for cloud computing environments',
-    'cloud-gw': 'networking devices or virtual services that bridge on-premises infrastructure to cloud environments',
-    'cloud-deploy': 'where your infrastructure is hosted, who manages it, and who has access to it (public = provider-owned, private = you own it, hybrid = both)',
-    // Ports and protocols
-    'proto-ftp': 'File Transfer Protocol — Layer 7 — TCP ports 20 (data) & 21 (control), unencrypted',
-    'proto-sftp': 'SSH File Transfer Protocol — Layer 7 — TCP port 22, encrypted file transfer over SSH',
-    // Traffic types
-    'traffic-unicast': 'one-to-one — single sender to single receiver (most normal traffic)',
-    'traffic-multicast': 'one-to-many — single sender to a subscribed group (e.g. video streaming)',
-    'traffic-anycast': 'one-to-nearest — packet sent to the closest node in a group (used in DNS/CDN)',
-    'traffic-broadcast': 'one-to-all — sent to every device on the network segment (e.g. ARP requests)',
-    // Wireless
-    'wireless-80211': 'Wi-Fi standard family — a/b/g/n/ac/ax (Wi-Fi 6); defines speeds, frequencies, and modulation',
-    'wireless-cellular': '4G LTE / 5G — wide-area wireless via cell towers; 5G adds mmWave for high speed/low latency',
-    'wireless-satellite': 'long-distance wireless via orbiting satellites — high latency (LEO like Starlink is lower latency)',
-    // Wired
-    'wired-fiber': 'light pulses through glass/plastic — immune to EMI, very long distances, high speed (SMF = single-mode, MMF = multi-mode)',
-    'wired-coax': 'copper core with shielding — used in cable TV/internet (RG-6), BNC connectors',
-    'wired-dac': 'short copper cable with SFP/QSFP ends — used in datacenters for rack-to-rack, cheaper than fiber for short runs',
-    // Connectors
-    'conn-sc': 'Subscriber Connector — square push-pull fiber connector, older standard',
-    'conn-lc': 'Lucent Connector — small square snap-in fiber connector, most common in datacenters today',
-    'conn-st': 'Straight Tip — round bayonet-style fiber connector, older, used in legacy installs',
-    'conn-mpo': 'Multi-fiber Push On — high-density fiber connector, holds 12–24 fibers, used in datacenter trunk cables',
-    'conn-rj11': '4-pin/6-position connector — used for telephone lines (POTS)',
-    'conn-rj45': '8-pin connector — standard Ethernet connector for Cat5e/Cat6/Cat6a',
-    'conn-ftype': 'threaded coaxial connector — used for cable TV and broadband coax',
-    'conn-bnc': 'Bayonet Neill–Concelman — twist-lock coaxial connector, used in older 10BASE2 Ethernet and video',
-    // Topologies
-    'topo-mesh': 'every node connects to every other node — full mesh = max redundancy, partial mesh = some redundancy',
-    'topo-hybrid': 'combination of two or more topologies (e.g. star + mesh)',
-    'topo-star': 'all devices connect to a central hub/switch — most common LAN topology; single point of failure at center',
-    'topo-spineleaf': 'datacenter topology — leaf switches connect to all spine switches; any leaf can reach any other in 2 hops',
-    'topo-p2p': 'direct link between exactly two devices — simplest topology',
-    'topo-threetier': 'enterprise LAN: core (fast backbone) → distribution (routing/policies) → access (end devices)',
-    'topo-collapsedcore': 'two-tier — core and distribution layers merged into one; used in smaller networks',
-    // IPv4
-    'ipv4-pubpriv': 'public = routable on internet (assigned by ISP), private = RFC1918 ranges, not routable publicly (requires NAT)',
-    'ipv4-apipa': 'Automatic Private IP Addressing — 169.254.0.0/16 — assigned by OS when DHCP fails',
-    'ipv4-rfc1918': 'private IP ranges: 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16',
-    'ipv4-loopback': '127.0.0.0/8 — traffic sent to itself; 127.0.0.1 is the standard loopback address',
-    'ipv4-subnet': 'VLSM = variable length subnet masks (different size subnets); CIDR = classless notation like /24 to replace old classful system',
-    'ipv4-classes': 'A: 1-126 (/8), B: 128-191 (/16), C: 192-223 (/24), D: 224-239 (multicast), E: 240-255 (reserved/experimental)',
-    // Additional protocols
-    'proto-ssh': 'Secure Shell — TCP port 22 — encrypted remote CLI access, replaces Telnet',
-    'proto-telnet': 'TCP port 23 — unencrypted remote CLI access — never use on production, security risk',
-    'proto-smtp': 'Simple Mail Transfer Protocol — TCP port 25 — sends email between servers',
-    'proto-dns': 'Domain Name System — UDP/TCP port 53 — resolves hostnames to IP addresses',
-    'proto-dhcp': 'Dynamic Host Configuration Protocol — UDP ports 67/68 — auto-assigns IP, subnet, gateway, DNS to clients',
-    'proto-http': 'Hypertext Transfer Protocol — TCP port 80 — unencrypted web traffic',
-    'proto-https': 'HTTP Secure — TCP port 443 — HTTP over TLS/SSL, encrypted web traffic',
-    'proto-snmp': 'Simple Network Management Protocol — UDP port 161 — monitors and manages network devices',
-    'proto-ldap': 'Lightweight Directory Access Protocol — TCP port 389 — queries directory services (e.g. Active Directory)',
-    'proto-rdp': 'Remote Desktop Protocol — TCP port 3389 — Microsoft GUI remote access',
-    'proto-sip': 'Session Initiation Protocol — TCP/UDP port 5060/5061 — sets up/tears down VoIP calls',
-    // Cloud service models
-    'cloud-saas': 'Software as a Service — provider manages everything, you just use the app (e.g. Gmail, Office 365)',
-    'cloud-iaas': 'Infrastructure as a Service — provider gives you VMs/networking/storage, you manage OS and up (e.g. AWS EC2)',
-    'cloud-paas': 'Platform as a Service — provider manages OS/runtime, you manage your app and data (e.g. Heroku, Azure App Service)',
-    // Routing
-    'route-static': 'manually configured routes — no overhead, no auto-updates; used for small/simple networks or default routes',
-    'route-dynamic': 'routers exchange routes automatically via protocols (OSPF, BGP, EIGRP) — adapts to topology changes',
-    'route-bgp': 'Border Gateway Protocol — path-vector, TCP port 179 — the routing protocol of the internet (between ASes)',
-    'route-eigrp': 'Enhanced Interior Gateway Routing Protocol — Cisco proprietary, hybrid distance-vector, fast convergence',
-    'route-ospf': 'Open Shortest Path First — link-state IGP — uses Dijkstra algorithm, organized into areas, open standard',
-    'route-nat': 'Network Address Translation — maps private IPs to public IP for outbound internet (hides internal network)',
-    'route-pat': 'Port Address Translation — NAT overload; maps many private IPs to one public IP using different ports',
-    'route-fhrp': 'First Hop Redundancy Protocol — provides default gateway redundancy (HSRP, VRRP, GLBP)',
-    'route-vip': 'Virtual IP — shared IP address used by FHRP or load balancers; not tied to a single physical device',
-    'route-subint': 'logical subdivision of a physical interface — used for router-on-a-stick VLAN routing (e.g. Gi0/0.10)',
-    // Switching
-    'switch-vlan': 'Virtual LAN — logically segments a switch into separate broadcast domains without needing separate hardware',
-    'switch-ifconfig': 'port settings on a switch: speed, duplex, access vs trunk mode, VLAN assignment',
-    'switch-stp': 'Spanning Tree Protocol — prevents Layer 2 loops by blocking redundant paths (STP, RSTP, MSTP)',
-    'switch-mtu': 'Maximum Transmission Unit — largest packet size allowed on a link; standard Ethernet = 1500 bytes',
-    'switch-jumbo': 'frames larger than 1500 bytes MTU (up to 9000 bytes) — reduces overhead in datacenter/storage traffic',
-    // Wi-Fi implementation
-    'wifi-channels': 'frequency subdivisions — 2.4GHz has 11 channels (only 1/6/11 non-overlapping), 5GHz has many non-overlapping channels',
-    'wifi-freq': '2.4GHz = longer range, slower, more congested; 5GHz = shorter range, faster, less interference; 6GHz = Wi-Fi 6E',
-    'wifi-ssid': 'Service Set Identifier — the name of the wireless network broadcast by the AP',
-    'wifi-enc': 'WEP (broken), WPA, WPA2 (AES/CCMP — current standard), WPA3 (latest, stronger)',
-    'wifi-guest': 'isolated SSID/VLAN for untrusted devices — prevents guests from accessing internal LAN',
-    'wifi-auth': 'Open, PSK (pre-shared key), 802.1X/EAP (enterprise — uses RADIUS for per-user auth)',
-    'wifi-antenna': 'omnidirectional = radiates in all directions; directional (Yagi, parabolic) = focused beam for long range',
-    'wifi-ap': 'Access Point — provides wireless connectivity to wired network; can be standalone, controller-based, or cloud-managed',
-    // Physical installations
-    'phys-install': 'cable routing, conduit, patch panels, cable management, labeling, distance limits per standard',
-    'phys-power': 'UPS for power redundancy, PoE for powering devices over Ethernet (switches must support PoE budget)',
-    'phys-env': 'temperature, humidity, dust, EMI — datacenters use HVAC, raised floors, hot/cold aisle containment',
-    // Documentation
-    'doc-diagrams': 'physical = actual device locations and cable runs; logical = IP addressing, VLANs, routing paths',
-    'doc-rack': 'diagram of equipment mounted in a rack — shows U positions, power draw, cable management',
-    'doc-cable': 'documents which cable connects which ports — essential for troubleshooting',
-    'doc-asset': 'list of all hardware/software with serial numbers, location, owner, warranty info',
-    'doc-ipam': 'IP Address Management — tracks allocation of IP space, subnets, and assignments',
-    'doc-sla': 'Service Level Agreement — defines uptime guarantees, response times, and penalties between provider and customer',
-    'doc-wsurvey': 'maps wireless signal coverage, interference, and AP placement in a physical space',
-    // Lifecycle
-    'lc-eol': 'End of Life — vendor stops selling the product; still supported for a period',
-    'lc-eos': 'End of Support — vendor stops patches and support; security risk to keep running',
-    'lc-softmgmt': 'patch management, firmware updates, version control, testing before deployment',
-    'lc-decom': 'secure disposal of hardware — wipe drives, remove from inventory, document',
-    // Change management
-    'change-track': 'formal process: submit change request → review/approve → implement → verify → document; prevents unplanned outages',
-    // Configuration management
-    'cfg-prod': 'live running config on a device — what is currently active',
-    'cfg-backup': 'saved copy of config — used to restore after failure or mistake',
-    'cfg-baseline': 'known-good standard config — used to compare against and detect drift',
-    // Monitoring
-    'mon-snmp': 'polls or receives traps from devices — v1/v2c (community string), v3 (encrypted + authenticated)',
-    'mon-flow': 'NetFlow/sFlow/IPFIX — summarizes traffic flows (src/dst IP, port, bytes) for traffic analysis',
-    'mon-pcap': 'full packet capture — tools like Wireshark; captures all traffic on a segment for deep analysis',
-    'mon-baseline': 'normal traffic/performance metrics — used to identify anomalies or degradation',
-    'mon-log': 'Syslog, SIEM — centralizes logs from multiple devices for correlation and alerting',
-    'mon-api': 'using REST APIs to pull data from devices/platforms instead of SNMP (modern network management)',
-    'mon-mirror': 'SPAN port — copies traffic from one port to another for monitoring without interrupting flow',
-    // Disaster recovery
-    'dr-rpo': 'Recovery Point Objective — max acceptable data loss measured in time (e.g. 1hr RPO = backups every hour)',
-    'dr-rto': 'Recovery Time Objective — max acceptable downtime before systems must be restored',
-    'dr-mttr': 'Mean Time To Repair — average time to fix a failed component',
-    'dr-mtbf': 'Mean Time Between Failures — average time a component runs before failing; higher = more reliable',
-    'dr-sites': 'cold = empty facility (slowest recovery); warm = partial equipment ready; hot = fully running mirror (fastest recovery)',
-    'dr-active': 'active-active = both sites handle traffic simultaneously; active-passive = standby takes over only on failure',
-    // Network services
-    'svc-dhcp': 'Dynamic Host Configuration Protocol — auto-assigns IP/mask/gateway/DNS to clients (DORA process)',
-    'svc-slaac': 'Stateless Address Autoconfiguration — IPv6 feature; devices configure their own IP from router prefix without DHCP',
-    'svc-dns': 'Domain Name System — resolves FQDNs to IPs; records: A, AAAA, CNAME, MX, PTR, NS, TXT',
-    'svc-ntp': 'Network Time Protocol — UDP port 123 — synchronizes clocks; uses stratum hierarchy (stratum 0 = atomic clock)',
-    'svc-ptp': 'Precision Time Protocol (IEEE 1588) — sub-microsecond time sync; used in finance, telecom, industrial',
-    'svc-nts': 'Network Time Security — NTP with authenticated/encrypted time sync (modern replacement for plain NTP)',
-    // Access & management
-    'mgmt-vpn': 'Virtual Private Network — encrypted tunnel over public internet; site-to-site or remote access (SSL/IPSec)',
-    'mgmt-ssh': 'Secure Shell — TCP 22 — encrypted CLI management of network devices, replaces Telnet',
-    'mgmt-gui': 'Graphical UI for managing devices — web-based (HTTPS), easier but less powerful than CLI',
-    'mgmt-api': 'REST/NETCONF/RESTCONF — programmatic device management for automation',
-    'mgmt-console': 'out-of-band access via physical serial/console port — used when network access is unavailable',
-    // Logical security
-    'sec-enc': 'in transit = TLS/IPSec protects data moving over network; at rest = encrypted storage (AES)',
-    'sec-pki': 'Public Key Infrastructure — manages digital certificates and CA hierarchy for encryption/identity',
-    'sec-iam': 'Identity and Access Management — controls who can access what resources (users, roles, policies)',
-    'sec-mfa': 'Multi-Factor Authentication — requires 2+ of: something you know, have, or are',
-    'sec-sso': 'Single Sign-On — authenticate once, access multiple systems (uses SAML, OAuth, OIDC)',
-    'sec-radius': 'Remote Authentication Dial-In User Service — UDP 1812/1813 — centralized AAA for network access (802.1X)',
-    'sec-ldap': 'Lightweight Directory Access Protocol — queries user/device directory (Active Directory uses LDAP)',
-    'sec-saml': 'Security Assertion Markup Language — XML-based SSO standard; passes auth between identity provider and service',
-    'sec-tacacs': 'TACACS+ — TCP 49 — Cisco AAA protocol; separates Authentication, Authorization, Accounting (more granular than RADIUS)',
-    'sec-timeauth': 'TOTP/HOTP — time-based one-time passwords (like Google Authenticator); valid for ~30 seconds',
-    'sec-leastpriv': 'users/systems get only minimum permissions needed — limits blast radius of a compromise',
-    'sec-rbac': 'Role-Based Access Control — permissions assigned to roles, users assigned to roles (not direct assignment)',
-    'sec-geofence': 'restricts access based on physical location using GPS/IP — can block logins outside a defined area',
-    // Physical security
-    'physsec-cam': 'CCTV/IP cameras — deters and records physical access; part of layered security',
-    'physsec-locks': 'physical locks on server rooms, racks, and cable closets — first line of physical defense',
-    // Deception
-    'deception-honeypot': 'fake system designed to attract and detect attackers — gathers intel on attack techniques',
-    'deception-honeynet': 'network of honeypots — simulates an entire environment to study attacker behavior',
-    // Security terminology
-    'term-risk': 'likelihood × impact — probability that a threat will exploit a vulnerability and cause harm',
-    'term-vuln': 'weakness in a system that can be exploited (unpatched software, misconfiguration)',
-    'term-exploit': 'code or technique that takes advantage of a vulnerability to cause unintended behavior',
-    'term-threat': 'potential cause of harm — could be a person, event, or circumstance',
-    'term-cia': 'Confidentiality (only authorized access), Integrity (data not tampered), Availability (systems accessible when needed)',
-    // Compliance
-    'comp-locality': 'laws requiring data to be stored/processed within specific geographic borders',
-    'comp-pci': 'Payment Card Industry Data Security Standard — required for orgs handling credit card data',
-    'comp-gdpr': 'General Data Protection Regulation — EU law governing personal data collection, processing, and rights',
-    // Segmentation
-    'seg-iot': 'Internet of Things — consumer devices (cameras, thermostats); isolate on separate VLAN due to weak security',
-    'seg-iiot': 'Industrial IoT — factory/industrial sensors and controllers; high security/availability requirements',
-    'seg-scada': 'Supervisory Control and Data Acquisition — monitors/controls industrial systems (power, water); air-gap when possible',
-    'seg-ics': 'Industrial Control Systems — broad term for systems controlling physical processes (includes SCADA, PLC, DCS)',
-    'seg-ot': 'Operational Technology — hardware/software that controls physical devices; traditionally isolated from IT',
-    'seg-guest': 'isolated network segment for visitors — internet access only, no access to internal LAN',
-    'seg-byod': 'Bring Your Own Device — personal devices on corporate network; requires MDM/NAC to enforce policy',
-    // Attacks
-    'atk-ddos': 'Denial of Service / Distributed DoS — floods target with traffic to exhaust resources and take it offline',
-    'atk-vlanhopping': 'attacker sends 802.1Q tagged frames to jump between VLANs — prevented by disabling DTP and using dedicated native VLAN',
-    'atk-macflood': 'floods a switch CAM table with fake MACs — switch fails open and broadcasts all traffic (like a hub)',
-    'atk-arp': 'attacker sends fake ARP replies linking their MAC to another IP — enables MitM attacks',
-    'atk-dns': 'attacker corrupts DNS cache with false records — redirects users to malicious sites',
-    'atk-rogue': 'unauthorized device/service on network (rogue DHCP, rogue AP) — can intercept or disrupt traffic',
-    'atk-eviltwin': 'attacker sets up fake AP with same SSID — clients connect thinking it is legit, traffic intercepted',
-    'atk-onpath': 'formerly MitM — attacker positions between two parties, intercepts and potentially alters traffic',
-    'atk-phishing': 'social engineering via email/SMS — tricks users into revealing credentials or installing malware',
-    'atk-dumpster': 'physically searching discarded materials for sensitive info (passwords, network diagrams)',
-    'atk-shoulder': 'physically observing someone entering credentials or sensitive info',
-    'atk-tailgate': 'following an authorized person through a secured door without using own credentials',
-    // Defense
-    'def-harden': 'reduce attack surface: disable unused ports/services, change defaults, patch, enable logging',
-    'def-nac': 'Network Access Control — enforces policy before granting network access (check OS patch level, AV status)',
-    'def-keymgmt': 'generating, distributing, storing, rotating, and revoking cryptographic keys securely',
-    'def-acl': 'Access Control List — ordered list of permit/deny rules applied to interfaces or resources',
-    'def-urlfilter': 'blocks access to categories of websites or specific URLs — enforced at proxy/firewall/DNS',
-    'def-zones': 'trusted = internal LAN; untrusted = internet; DMZ = semi-trusted public-facing servers',
-    'def-screenedsub': 'DMZ — subnet between two firewalls; hosts public-facing servers isolated from internal LAN',
-    // Troubleshooting methodology
-    'ts-identify': 'gather info: what changed, who is affected, error messages, reproduce the problem',
-    'ts-theory': 'form hypothesis based on OSI model or most likely cause; start simple',
-    'ts-test': 'confirm or deny theory — if confirmed, determine fix; if denied, form new theory',
-    'ts-plan': 'document steps before making changes; consider rollback plan; implement during change window',
-    'ts-verify': 'confirm issue is resolved for all affected users; check for side effects',
-    'ts-document': 'record the problem, root cause, and solution — builds knowledge base for future issues',
-    // Cabling issues
-    'cable-type': 'wrong cable standard (e.g. straight-through vs crossover, wrong Cat rating) causes link failure or degraded speeds',
-    'cable-degrade': 'signal loss over distance or due to damage — attenuation in copper, bending radius issues in fiber',
-    'cable-term': 'poorly crimped RJ45 or fiber splice — causes intermittent connectivity or high error rates',
-    'cable-txrx': 'transmit and receive wires swapped — modern NICs auto-MDIX can correct, older cannot',
-    'cable-counters': 'rising CRC/error/collision counters on interface — indicates physical layer problem',
-    'cable-portstatus': 'up/up = connected and active; up/down = connected but no signal; down/down = shut or no cable',
-    'cable-poe': 'Power over Ethernet — IEEE 802.3af/at/bt; powers APs, IP phones over Cat cable; check wattage budget',
-    'cable-xcvr': 'mismatched SFP/QSFP modules (e.g. SMF vs MMF, different speeds) — link will not come up',
-    'cable-sigstrength': 'wireless: measured in dBm; -50 dBm = excellent, -70 dBm = ok, below -80 dBm = poor/unusable',
-    // Network service issues
-    'issue-stp': 'topology change loops, blocking wrong ports — use RSTP/MSTP; check root bridge election',
-    'issue-vlan': 'device in wrong VLAN or missing VLAN on trunk — check switchport access vlan and trunk allowed list',
-    'issue-acl': 'implicit deny blocking legitimate traffic — check ACL order and direction (in vs out)',
-    'issue-route': 'missing or incorrect routes — check routing table with show ip route; verify next-hop reachability',
-    'issue-defroute': 'no default route = packets to unknown destinations dropped — must exist for internet access',
-    'issue-poolexhaust': 'DHCP scope exhausted — clients get APIPA (169.254.x.x); fix by expanding pool or reducing lease time',
-    'issue-gwip': 'wrong default gateway = no routing outside subnet; wrong mask = wrong network range; verify with ipconfig/ip a',
-    // Performance
-    'perf-congestion': 'too much traffic for available bandwidth — causes queuing delays and drops; fix with QoS or upgrade links',
-    'perf-latency': 'delay in packet delivery — measured in ms; causes: distance, congestion, processing, jitter in VoIP',
-    'perf-pktloss': 'packets dropped in transit — causes: congestion, faulty hardware, wireless interference; detected with ping',
-    'perf-wifiinterf': 'competing signals on same channel (co-channel) or adjacent channel — use Wi-Fi analyzer to find clean channel',
-    // Tools
-    'tool-analyzer': 'Wireshark, tcpdump — capture and inspect packets at the frame level for deep troubleshooting',
-    'tool-cli': 'ping (reachability), traceroute (path), nslookup/dig (DNS), netstat (connections), ipconfig/ip (addressing)',
-    'tool-cabletester': 'certifier or basic tester — verifies continuity, wire map, and length; TDR locates breaks',
-    'tool-wifianalyzer': 'scans wireless environment for SSIDs, channels, signal strength, and interference sources',
-  };
+const LS_KEY = 'archive18_quiz_progress';
+let mode = 'flash';
+let filter = 'all';
+let queue = [], pos = 0, current = null;
+let score = 0, streak = 0, bestStreak = 0;
+let mastered = new Set();
+let answered = false, revealed = false;
 
-  function getFields() {
-    return document.querySelectorAll('.answer-field[data-key]');
+const $ = id => document.getElementById(id);
+const norm = s => (s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+function loadProgress(){
+  try{const r=JSON.parse(localStorage.getItem(LS_KEY)||'{}');
+    mastered=new Set(r.mastered||[]); bestStreak=r.bestStreak||0;}catch(e){}
+}
+function saveProgress(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify({mastered:[...mastered],bestStreak})); }catch(e){}
+}
+
+function poolCards(){ return CARDS.filter(c=>filter==='all'||c.domain===filter); }
+
+function startRound(){
+  queue = shuffle(poolCards().map(c=>c.id));
+  pos=0; score=0; streak=0;
+  updateStats(); nextCard();
+}
+function nextCard(){
+  answered=false; revealed=false;
+  $('nextBtn').disabled=true;
+  if(pos>=queue.length){ renderDone(); return; }
+  current = CARDS.find(c=>c.id===queue[pos]);
+  render();
+}
+function advance(){ pos++; nextCard(); }
+
+function mark(correct){
+  if(answered) return;
+  answered=true;
+  if(correct){
+    score++; streak++;
+    if(streak>bestStreak) bestStreak=streak;
+    mastered.add(current.id);
+    saveProgress();
+  } else {
+    streak=0;
   }
+  updateStats(); updateBars();
+}
 
-  function saveAnswers() {
-    const answers = {};
-    getFields().forEach(field => {
-      answers[field.dataset.key] = field.innerText;
-    });
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(answers));
-  }
+/* ---------- RENDER ---------- */
+function render(){
+  $('nextBtn').style.display = (mode==='flash') ? 'none' : '';
+  if(mode==='flash') renderFlash();
+  else if(mode==='mc') renderMC();
+  else renderType();
+  updateShortcuts();
+}
 
-  function loadAnswers() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    const userAnswers = saved ? JSON.parse(saved) : {};
-    getFields().forEach(field => {
-      const key = field.dataset.key;
-      if (userAnswers[key] !== undefined) {
-        field.innerText = userAnswers[key];
-      } else if (DEFAULTS[key]) {
-        field.innerText = DEFAULTS[key];
-      }
-    });
-  }
+function chipHTML(){ return '<span class="chip">'+esc(current.domain)+(current.sub?' &middot; '+esc(current.sub):'')+'</span>'; }
 
-  function clearAnswers() {
-    if (!confirm('Clear all answers? Default answers will be restored on next load.')) return;
-    localStorage.removeItem(STORAGE_KEY);
-    getFields().forEach(field => {
-      field.innerText = DEFAULTS[field.dataset.key] || '';
-    });
-  }
+function renderFlash(){
+  const c=current;
+  $('card').innerHTML =
+    chipHTML()+
+    '<div class="q-label">Term</div>'+
+    '<div class="flash-front">'+esc(c.front)+'</div>'+
+    '<div id="flashBody"><div class="flash-hint">Tap card or press <kbd>Space</kbd> to reveal</div></div>';
+  $('card').onclick = e=>{ if(!revealed && e.target.closest('.card') && !e.target.closest('button')) flip(); };
+}
+function flip(){
+  if(revealed) return; revealed=true;
+  const c=current;
+  $('flashBody').innerHTML =
+    '<div class="flash-back">'+esc(c.back)+'</div>'+
+    '<div class="flash-buttons">'+
+      '<button class="btn good" id="gotIt">Got it &#10003;</button>'+
+      '<button class="btn bad" id="review">Review &#10007;</button>'+
+    '</div>';
+  $('gotIt').onclick = ()=>{ mark(true); advance(); };
+  $('review').onclick = ()=>{ mark(false); advance(); };
+}
 
-  document.addEventListener('DOMContentLoaded', () => {
-    loadAnswers();
-    getFields().forEach(field => {
-      field.addEventListener('input', saveAnswers);
-    });
+function renderMC(){
+  const c=current;
+  const opts = mcOptions(c);
+  let html = chipHTML()+
+    '<div class="q-label">'+(c.kind==='port'?'Which port?':'Which term?')+'</div>'+
+    '<div class="q-text'+(c.kind==='term'?' def':'')+'">'+esc(c.prompt)+'</div>'+
+    '<div class="opts">';
+  opts.forEach((o,i)=>{
+    html += '<button class="opt" data-val="'+esc(o)+'"><span class="key">'+(i+1)+'</span><span>'+esc(o)+'</span></button>';
   });
+  html += '</div><div class="feedback" id="fb"></div>';
+  $('card').innerHTML = html; $('card').onclick=null;
+  document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>chooseMC(b,c));
+}
+function mcOptions(card){
+  const others = CARDS.filter(c=>c.kind===card.kind && norm(c.answer)!==norm(card.answer));
+  let dp = others.filter(c=>c.domain===card.domain);
+  if(dp.length<6) dp = others;
+  const seen=new Set([norm(card.answer)]); const picks=[];
+  for(const c of shuffle(dp)){ const n=norm(c.answer);
+    if(!seen.has(n)){ seen.add(n); picks.push(c.answer);} if(picks.length===3)break; }
+  return shuffle([card.answer,...picks]);
+}
+function chooseMC(btn,c){
+  if(answered) return;
+  const correct = norm(btn.dataset.val)===norm(c.answer);
+  mark(correct);
+  document.querySelectorAll('.opt').forEach(b=>{
+    b.disabled=true;
+    if(norm(b.dataset.val)===norm(c.answer)) b.classList.add('correct');
+  });
+  if(!correct) btn.classList.add('wrong');
+  const fb=$('fb');
+  fb.textContent = correct ? '✓ Correct' : '✗ Answer: '+c.answer;
+  fb.className = 'feedback '+(correct?'good':'bad');
+  $('nextBtn').disabled=false; $('nextBtn').focus();
+}
 
-  // ── PORT NUMBER QUIZ ──────────────────────────────────────────
-  const PORT_DATA = [
-    { port: '20', protocol: 'FTP (Data)', transport: 'TCP' },
-    { port: '21', protocol: 'FTP (Control)', transport: 'TCP' },
-    { port: '22', protocol: 'SSH / SFTP / SCP', transport: 'TCP' },
-    { port: '23', protocol: 'Telnet', transport: 'TCP' },
-    { port: '25', protocol: 'SMTP', transport: 'TCP' },
-    { port: '49', protocol: 'TACACS+', transport: 'TCP' },
-    { port: '53', protocol: 'DNS', transport: 'TCP/UDP' },
-    { port: '67', protocol: 'DHCP (Server)', transport: 'UDP' },
-    { port: '68', protocol: 'DHCP (Client)', transport: 'UDP' },
-    { port: '69', protocol: 'TFTP', transport: 'UDP' },
-    { port: '80', protocol: 'HTTP', transport: 'TCP' },
-    { port: '88', protocol: 'Kerberos', transport: 'TCP/UDP' },
-    { port: '110', protocol: 'POP3', transport: 'TCP' },
-    { port: '123', protocol: 'NTP', transport: 'UDP' },
-    { port: '137', protocol: 'NetBIOS Name', transport: 'UDP' },
-    { port: '138', protocol: 'NetBIOS Datagram', transport: 'UDP' },
-    { port: '139', protocol: 'NetBIOS Session', transport: 'TCP' },
-    { port: '143', protocol: 'IMAP', transport: 'TCP' },
-    { port: '161', protocol: 'SNMP', transport: 'UDP' },
-    { port: '162', protocol: 'SNMP Trap', transport: 'UDP' },
-    { port: '179', protocol: 'BGP', transport: 'TCP' },
-    { port: '389', protocol: 'LDAP', transport: 'TCP' },
-    { port: '443', protocol: 'HTTPS', transport: 'TCP' },
-    { port: '445', protocol: 'SMB', transport: 'TCP' },
-    { port: '500', protocol: 'IKE / ISAKMP', transport: 'UDP' },
-    { port: '514', protocol: 'Syslog', transport: 'UDP' },
-    { port: '587', protocol: 'SMTP (STARTTLS)', transport: 'TCP' },
-    { port: '636', protocol: 'LDAPS', transport: 'TCP' },
-    { port: '993', protocol: 'IMAPS', transport: 'TCP' },
-    { port: '995', protocol: 'POP3S', transport: 'TCP' },
-    { port: '1433', protocol: 'MS SQL Server', transport: 'TCP' },
-    { port: '1521', protocol: 'Oracle DB', transport: 'TCP' },
-    { port: '1701', protocol: 'L2TP', transport: 'UDP' },
-    { port: '1723', protocol: 'PPTP', transport: 'TCP' },
-    { port: '1812', protocol: 'RADIUS (Auth)', transport: 'UDP' },
-    { port: '1813', protocol: 'RADIUS (Acct)', transport: 'UDP' },
-    { port: '3306', protocol: 'MySQL', transport: 'TCP' },
-    { port: '3389', protocol: 'RDP', transport: 'TCP' },
-    { port: '4500', protocol: 'IPSec NAT-T', transport: 'UDP' },
-    { port: '5060', protocol: 'SIP', transport: 'TCP/UDP' },
-    { port: '5061', protocol: 'SIP (TLS)', transport: 'TCP' },
-  ];
-
-  let quizQueue = [];
-  let quizCurrent = null;
-  let quizScore = 0;
-  let quizAttempted = 0;
-
-  function shuffleArray(arr) {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
+function renderType(){
+  const c=current;
+  $('card').innerHTML =
+    chipHTML()+
+    '<div class="q-label">'+(c.kind==='port'?'Type the port number':'Type the term')+'</div>'+
+    '<div class="q-text'+(c.kind==='term'?' def':'')+'">'+esc(c.prompt)+'</div>'+
+    '<div class="type-row">'+
+      '<input class="type-input" id="ti" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="'+(c.kind==='port'?'e.g. 443':'your answer')+'">'+
+      '<button class="btn primary" id="submitT">Check</button>'+
+    '</div>'+
+    '<div class="feedback" id="fb"></div><div id="rev"></div>';
+  $('card').onclick=null;
+  const ti=$('ti');
+  ti.focus();
+  ti.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault(); submitType();}});
+  $('submitT').onclick=submitType;
+}
+function submitType(){
+  if(answered) return;
+  const c=current; const ti=$('ti');
+  const val=ti.value.trim(); if(!val) return;
+  const correct = c.accept.includes(norm(val)) || norm(val)===norm(c.answer);
+  mark(correct);
+  ti.classList.add(correct?'correct':'wrong'); ti.disabled=true;
+  $('submitT').disabled=true;
+  const fb=$('fb');
+  fb.textContent = correct ? '✓ Correct' : '✗ Not quite';
+  fb.className='feedback '+(correct?'good':'bad');
+  $('rev').innerHTML = '<div class="reveal"><b>'+esc(c.answer)+'</b>'+
+     (c.kind==='term' ? ' &mdash; '+esc(c.back) : '  ('+esc(c.front)+')')+'</div>'+
+     (correct? '' :
+      '<div style="margin-top:10px"><button class="btn ghost" id="override">I was right &#8212; mark correct</button></div>');
+  if(!correct){
+    $('override').onclick=()=>{
+      if(answered && !mastered.has(current.id)){
+        score++; streak++; if(streak>bestStreak)bestStreak=streak;
+        mastered.add(current.id); saveProgress();
+        ti.classList.remove('wrong'); ti.classList.add('correct');
+        fb.textContent='✓ Marked correct'; fb.className='feedback good';
+        updateStats(); updateBars(); $('override').remove();
+      }
+    };
   }
+  $('nextBtn').disabled=false; $('nextBtn').focus();
+}
 
-  function togglePortTable() {
-    document.getElementById('portTableView').style.display = 'block';
-    document.getElementById('portQuizView').style.display = 'none';
-  }
+function renderDone(){
+  const total=poolCards().length;
+  $('card').innerHTML =
+    '<div class="done-screen">'+
+      '<div class="big">Round complete &#127881;</div>'+
+      '<div class="sub">You scored <b>'+score+'</b> / '+total+' this round &middot; best streak '+bestStreak+'</div>'+
+      '<button class="btn primary" id="againBtn">Go again</button>'+
+    '</div>';
+  $('card').onclick=null;
+  $('againBtn').onclick=startRound;
+  $('nextBtn').disabled=true; $('nextBtn').style.display='none';
+}
 
-  function togglePortQuiz() {
-    document.getElementById('portTableView').style.display = 'none';
-    document.getElementById('portQuizView').style.display = 'block';
-    if (quizQueue.length === 0) resetPortQuiz();
-  }
+/* ---------- STATS / BARS ---------- */
+function updateStats(){
+  $('score').textContent=score;
+  $('streak').textContent=streak;
+  $('best').textContent=bestStreak;
+  $('fire').textContent = streak>=3 ? '\u{1F525}' : '';
+  $('masteredCount').textContent=mastered.size;
+  $('totalCount').textContent=CARDS.length;
+}
+function buildBars(){
+  let html='';
+  DOMAINS.forEach(d=>{
+    const total=CARDS.filter(c=>c.domain===d.name).length;
+    html += '<div class="bar-row" data-d="'+esc(d.name)+'">'+
+      '<div class="bar-top"><span class="nm">'+esc(d.name)+'</span>'+
+        '<span class="wt">'+(d.weight==='ref'?'reference':'exam '+d.weight)+'</span></div>'+
+      '<div class="bar-track"><div class="bar-fill"></div></div>'+
+      '<div class="bar-num"><span class="m">0</span> / '+total+' mastered</div>'+
+    '</div>';
+  });
+  $('bars').innerHTML=html;
+}
+function updateBars(){
+  DOMAINS.forEach(d=>{
+    const ids=CARDS.filter(c=>c.domain===d.name);
+    const m=ids.filter(c=>mastered.has(c.id)).length;
+    const pct = ids.length? Math.round(m/ids.length*100):0;
+    const row=document.querySelector('.bar-row[data-d="'+d.name+'"]');
+    if(!row) return;
+    const fill=row.querySelector('.bar-fill');
+    fill.style.width=pct+'%';
+    fill.classList.toggle('done', pct===100);
+    row.querySelector('.m').textContent=m;
+  });
+}
 
-  function resetPortQuiz() {
-    quizQueue = shuffleArray(PORT_DATA);
-    quizScore = 0;
-    quizAttempted = 0;
-    document.getElementById('quizScore').textContent = '0';
-    document.getElementById('quizTotal').textContent = '0';
-    document.getElementById('quizProgress').textContent = '';
-    document.getElementById('quizFeedback').textContent = '';
-    document.getElementById('quizNextBtn').style.display = 'none';
-    nextPortQuestion();
+/* ---------- SHORTCUTS / GLOBAL KEYS ---------- */
+function updateShortcuts(){
+  let s='';
+  if(mode==='flash') s='<kbd>Space</kbd> flip &nbsp; <kbd>G</kbd> got it &nbsp; <kbd>R</kbd> review';
+  else if(mode==='mc') s='<kbd>1</kbd>&ndash;<kbd>4</kbd> pick &nbsp; <kbd>Enter</kbd> next';
+  else s='<kbd>Enter</kbd> check / next';
+  $('shortcuts').innerHTML=s;
+}
+document.addEventListener('keydown',e=>{
+  const typing = e.target.tagName==='INPUT';
+  if(mode==='flash'){
+    if(e.code==='Space'){ e.preventDefault(); if(!revealed) flip(); }
+    else if(!typing && revealed && (e.key==='g'||e.key==='G')){ mark(true); advance(); }
+    else if(!typing && revealed && (e.key==='r'||e.key==='R')){ mark(false); advance(); }
   }
+  if(mode==='mc' && !answered && !typing){
+    const n=parseInt(e.key,10);
+    if(n>=1&&n<=4){ const b=document.querySelectorAll('.opt')[n-1]; if(b) b.click(); }
+  }
+  if(e.key==='Enter' && answered && !$('nextBtn').disabled && $('nextBtn').style.display!=='none'){
+    advance();
+  }
+});
 
-  function nextPortQuestion() {
-    document.getElementById('quizFeedback').textContent = '';
-    document.getElementById('quizNextBtn').style.display = 'none';
-    document.getElementById('quizInput').value = '';
-    document.getElementById('quizInput').disabled = false;
-    if (quizQueue.length === 0) {
-      document.getElementById('quizProtocol').textContent = '🎉 Done!';
-      document.getElementById('quizTransport').textContent = 'Final: ' + quizScore + ' / ' + quizAttempted;
-      document.getElementById('quizInput').style.display = 'none';
-      document.getElementById('quizProgress').textContent = '';
-      return;
-    }
-    quizCurrent = quizQueue.pop();
-    document.getElementById('quizProtocol').textContent = quizCurrent.protocol;
-    document.getElementById('quizTransport').textContent = 'Transport: ' + quizCurrent.transport;
-    document.getElementById('quizProgress').textContent = (PORT_DATA.length - quizQueue.length) + ' / ' + PORT_DATA.length;
-    document.getElementById('quizInput').style.display = '';
-    document.getElementById('quizInput').focus();
-  }
+/* ---------- WIRING ---------- */
+function setMode(m){
+  mode=m;
+  document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));
+  if(current && pos<queue.length) render(); else startRound();
+}
+function buildFilter(){
+  let html='<option value="all">All domains ('+CARDS.length+')</option>';
+  DOMAINS.forEach(d=>{
+    const n=CARDS.filter(c=>c.domain===d.name).length;
+    html+='<option value="'+esc(d.name)+'">'+esc(d.name)+' ('+n+')</option>';
+  });
+  $('domainFilter').innerHTML=html;
+}
 
-  function checkPortAnswer() {
-    if (!quizCurrent) return;
-    const input = document.getElementById('quizInput').value.trim();
-    if (!input) return;
-    const correct = quizCurrent.port;
-    quizAttempted++;
-    document.getElementById('quizTotal').textContent = quizAttempted;
-    document.getElementById('quizInput').disabled = true;
-    const fb = document.getElementById('quizFeedback');
-    if (input === correct) {
-      quizScore++;
-      document.getElementById('quizScore').textContent = quizScore;
-      fb.textContent = '✓ Correct! Port ' + correct;
-      fb.style.color = '#2a7a2a';
-    } else {
-      fb.textContent = '✗ Answer: ' + correct;
-      fb.style.color = '#b00';
-    }
-    document.getElementById('quizNextBtn').style.display = 'inline-block';
-  }
+document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+$('domainFilter').onchange=e=>{ filter=e.target.value; startRound(); };
+$('nextBtn').onclick=advance;
+$('restartBtn').onclick=startRound;
+$('resetBtn').onclick=()=>{
+  if(!confirm('Reset all mastery progress and best streak?')) return;
+  mastered=new Set(); bestStreak=0; saveProgress();
+  updateStats(); updateBars();
+};
+
+loadProgress();
+buildFilter();
+buildBars();
+updateStats();
+updateBars();
+startRound();
 </script>
-
 </body>
 </html>
