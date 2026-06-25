@@ -207,6 +207,16 @@ details[open] .arrow::after {
   color: #888;
 }
 
+/* Embedded full quiz (iframe) */
+.quiz-embed {
+  width: 100%;
+  height: 78vh;
+  min-height: 520px;
+  border: 2px solid #000;
+  border-radius: 10px;
+  background: #fff;
+}
+
 /* Quiz mode link */
 .quiz-link {
   position: fixed;
