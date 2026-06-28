@@ -259,3 +259,42 @@ details[open] .arrow::after {
 .clear-btn:hover {
   background: #f0f0f0;
 }
+
+
+/* Site header */
+.site-header {
+  font-family: "Lexend", sans-serif;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 30px 40px 0;
+}
+.site-header .brand { font-size: 2.6rem; font-weight: 300; letter-spacing: -1px; }
+.site-header .header-quiz {
+  font-family: "Lexend", sans-serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: #111;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+.site-header .header-quiz:hover { border-color: #111; }
+.header-bar { height: 10px; background: #000; margin-top: 14px; }
+
+/* Topic description (subject subtitle) */
+.topic-desc {
+  font-family: "Lexend", sans-serif;
+  font-weight: 300;
+  color: #666;
+  font-size: 1.1rem;
+  margin-right: 20px;
+}
+summary .arrow { margin-left: auto; }
+
+@media (max-width: 600px) {
+  .site-header { padding: 20px 20px 0; }
+  .site-header .brand { font-size: 1.8rem; }
+  .site-header .header-quiz { font-size: 1.05rem; }
+  .topic-desc { display: none; }
+}
